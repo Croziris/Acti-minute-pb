@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Clock, Dumbbell, Edit, Trash2, Copy, ClipboardList, ArrowLeft } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+// TODO: remplacer par PocketBase
+import { supabase } from '@/lib/supabase-stub';
 import { useToast } from '@/hooks/use-toast';
 import { CreateWorkoutDialog } from '@/components/coach/CreateWorkoutDialog';
 import { WorkoutEditor } from '@/components/coach/WorkoutEditor';

@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, Plus, GripVertical } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+// TODO: remplacer par PocketBase
+import { supabase } from '@/lib/supabase-stub';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';

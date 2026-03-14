@@ -4,7 +4,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { supabase } from '@/integrations/supabase/client';
+// TODO: remplacer par PocketBase
+import { supabase } from '@/lib/supabase-stub';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';

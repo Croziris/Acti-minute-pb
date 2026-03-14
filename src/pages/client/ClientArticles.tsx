@@ -1,7 +1,8 @@
 import React from 'react';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+// TODO: remplacer par PocketBase
+import { supabase } from '@/lib/supabase-stub';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';

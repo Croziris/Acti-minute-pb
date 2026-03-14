@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { SessionFeedbackModal } from "@/components/session/SessionFeedbackModal";
 import { useSessionData } from "@/hooks/useSessionData";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
-import { supabase } from "@/integrations/supabase/client";
+// TODO: remplacer par PocketBase
+import { supabase } from '@/lib/supabase-stub';
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { CheckCircle, Clock, AlertCircle, ArrowLeft, MessageCircle, Trophy, Layers } from "lucide-react";

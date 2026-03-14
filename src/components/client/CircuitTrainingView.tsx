@@ -9,7 +9,8 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Timer, CheckCircle, Dumbbell } from 'lucide-react';
 import { CircuitExerciseCard } from './CircuitExerciseCard';
-import { supabase } from '@/integrations/supabase/client';
+// TODO: remplacer par PocketBase
+import { supabase } from '@/lib/supabase-stub';
 import { useToast } from '@/hooks/use-toast';
 
 interface Exercise {
