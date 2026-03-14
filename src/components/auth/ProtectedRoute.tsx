@@ -1,11 +1,21 @@
-import React from 'react';
+﻿import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 
+type AllowedRole = UserRole | 'spotif.ve';
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles: UserRole[];
+  allowedRoles: AllowedRole[];
 }
+
+const isRoleAllowed = (userRole: UserRole, allowedRoles: AllowedRole[]) => {
+  if (userRole === 'client') {
+    return allowedRoles.includes('client') || allowedRoles.includes('spotif.ve');
+  }
+
+  return allowedRoles.includes(userRole);
+};
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
   const { user, isLoading } = useAuth();
@@ -22,7 +32,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     return <Navigate to="/auth" replace />;
   }
 
-  if (!allowedRoles.includes(user.role)) {
+  if (!isRoleAllowed(user.role, allowedRoles)) {
     return <Navigate to="/auth" replace />;
   }
 

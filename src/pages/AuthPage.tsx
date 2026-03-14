@@ -1,25 +1,27 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Dumbbell, User, Users } from 'lucide-react';
+import { User, Users } from 'lucide-react';
+
+type RoleSelection = 'spotif.ve' | 'coach';
 
 const AuthPage = () => {
   const { user, login, isLoading } = useAuth();
   const { toast } = useToast();
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [username, setUsername] = useState('');
-  const [accessKey, setAccessKey] = useState('');
+  const [selectedRole, setSelectedRole] = useState<RoleSelection | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirection si déjà connecté
   useEffect(() => {
     if (user && !isLoading) {
-      if (user.role === 'spotif.ve') {
+      if (user.role === 'client') {
         window.location.href = '/client/home';
       } else if (user.role === 'coach') {
         window.location.href = '/coach/dashboard';
@@ -28,20 +30,20 @@ const AuthPage = () => {
   }, [user, isLoading]);
 
   if (user) {
-    return user.role === 'spotif.ve' ? 
-      <Navigate to="/client/home" replace /> : 
+    return user.role === 'client' ?
+      <Navigate to="/client/home" replace /> :
       <Navigate to="/coach/dashboard" replace />;
   }
 
-  const handleRoleSelect = (role: UserRole) => {
+  const handleRoleSelect = (role: RoleSelection) => {
     setSelectedRole(role);
-    setUsername('');
-    setAccessKey('');
+    setEmail('');
+    setPassword('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRole || !username.trim() || !accessKey.trim()) {
+    if (!selectedRole || !email.trim() || !password.trim()) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs.",
@@ -51,8 +53,8 @@ const AuthPage = () => {
     }
 
     setIsSubmitting(true);
-    const result = await login(selectedRole, username.trim(), accessKey.trim());
-    
+    const result = await login(email.trim(), password.trim());
+
     if (result.error) {
       toast({
         title: "Erreur de connexion",
@@ -70,8 +72,8 @@ const AuthPage = () => {
 
   const handleBack = () => {
     setSelectedRole(null);
-    setUsername('');
-    setAccessKey('');
+    setEmail('');
+    setPassword('');
   };
 
   if (isLoading) {
@@ -101,7 +103,7 @@ const AuthPage = () => {
               {!selectedRole ? 'Qui êtes-vous ?' : `Connexion ${selectedRole === 'spotif.ve' ? 'Sportif⸱ve' : 'Coach'}`}
             </CardTitle>
             <CardDescription>
-              {!selectedRole 
+              {!selectedRole
                 ? 'Sélectionnez votre profil pour vous connecter'
                 : 'Saisissez vos identifiants pour accéder à votre espace'
               }
@@ -145,25 +147,25 @@ const AuthPage = () => {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username">Identifiant</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Votre identifiant"
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Votre email"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="accessKey">Clé d'accès</Label>
+                  <Label htmlFor="password">Mot de passe</Label>
                   <Input
-                    id="accessKey"
+                    id="password"
                     type="password"
-                    value={accessKey}
-                    onChange={(e) => setAccessKey(e.target.value)}
-                    placeholder="Votre clé d'accès"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Votre mot de passe"
                     required
                   />
                 </div>
