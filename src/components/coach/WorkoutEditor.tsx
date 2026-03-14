@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, GripVertical, ChevronUp, ChevronDown, Dumbbell } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+// TODO: remplacer par PocketBase
+import { supabase } from '@/lib/supabase-stub';
 import { useToast } from '@/hooks/use-toast';
 import { ExerciseLibrary } from '@/components/exercises/ExerciseLibrary';
 import {

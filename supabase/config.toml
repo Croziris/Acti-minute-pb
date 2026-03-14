@@ -1,7 +1,0 @@
-project_id = "pjbtahwrkvemephioofr"
-
-[functions.get-notion-articles]
-verify_jwt = false
-
-[functions.get-notion-article]
-verify_jwt = false

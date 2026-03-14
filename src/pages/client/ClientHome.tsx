@@ -10,7 +10,8 @@ import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useNavigate } from 'react-router-dom';
 import { SessionHistoryModal } from '@/components/client/SessionHistoryModal';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+// TODO: remplacer par PocketBase
+import { supabase } from '@/lib/supabase-stub';
 import { useQuery } from '@tanstack/react-query';
 
 const ClientHome = () => {

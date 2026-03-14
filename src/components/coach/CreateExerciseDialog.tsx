@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+// TODO: remplacer par PocketBase
+import { supabase } from '@/lib/supabase-stub';
 import {
   Dialog,
   DialogContent,
