@@ -10,8 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Search, Play, Filter, Youtube, Pencil, Trash2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { EditExerciseDialog } from './EditExerciseDialog';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { extractYouTubeVideoId, isYouTubeShort, getYouTubeEmbedUrl } from '@/lib/utils';
@@ -89,15 +88,9 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
 
   const fetchExercises = async () => {
     try {
-      const { data, error } = await supabase
-        .from('exercise')
-        .select('*')
-        .order('libelle');
-
-      if (error) throw error;
-      setExercises(data || []);
-    } catch (error) {
-      console.error('Error fetching exercises:', error);
+      const records = await pb.collection('exercises').getFullList({ sort: 'libelle' });
+      setExercises(records as unknown as Exercise[]);
+    } catch {
       toast({
         title: "Erreur",
         description: "Impossible de charger les exercices",
@@ -133,32 +126,19 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
     if (!newExercise.libelle || !user) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-exercise', {
-        body: {
-          libelle: newExercise.libelle,
-          description: newExercise.description,
-          youtube_url: newExercise.youtube_url,
-          categories: newExercise.categories,
-          groupes: newExercise.groupes,
-          niveau: newExercise.niveau,
-          materiel: newExercise.materiel,
-        },
+      const record = await pb.collection('exercises').create({
+        libelle: newExercise.libelle,
+        description: newExercise.description,
+        youtube_url: newExercise.youtube_url,
+        video_id: extractYouTubeVideoId(newExercise.youtube_url),
+        categories: newExercise.categories,
+        groupes: newExercise.groupes,
+        niveau: newExercise.niveau,
+        materiel: newExercise.materiel,
+        verified: false,
+        created_by: user?.id,
       });
-
-      if (error) throw error;
-
-      if (data?.error) {
-        toast({
-          title: "Erreur",
-          description: data.error,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (data?.exercise) {
-        setExercises(prev => [data.exercise, ...prev]);
-      }
+      setExercises(prev => [record as unknown as Exercise, ...prev]);
 
       setShowAddDialog(false);
       setNewExercise({
@@ -176,8 +156,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
         description: "L'exercice a été ajouté à la banque",
       });
 
-    } catch (error) {
-      console.error('Error adding exercise:', error);
+    } catch {
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter l'exercice",
@@ -198,12 +177,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
     if (!deletingExercise) return;
 
     try {
-      const { error } = await supabase
-        .from('exercise')
-        .delete()
-        .eq('id', deletingExercise.id);
-
-      if (error) throw error;
+      await pb.collection('exercises').delete(deletingExercise.id);
 
       setExercises(prev => prev.filter(ex => ex.id !== deletingExercise.id));
       toast({
@@ -211,7 +185,6 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
         description: "L'exercice a été supprimé de la banque",
       });
     } catch (error: any) {
-      console.error('Error deleting exercise:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de supprimer l'exercice",

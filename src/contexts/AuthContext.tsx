@@ -1,25 +1,45 @@
-import React, { createContext, useContext } from 'react';
+﻿import React, { createContext, useContext, useEffect, useState } from 'react';
+import type { RecordModel } from 'pocketbase';
+import pb from '@/lib/pocketbase';
 
-// TODO: remplacer par PocketBase
-
-export type UserRole = 'spotif.ve' | 'coach';
+export type UserRole = 'coach' | 'client';
 
 export interface AppUser {
   id: string;
   role: UserRole;
-  handle?: string;
-  avatar_url?: string;
+  email: string;
+  name?: string;
+  avatar?: string;
 }
 
 interface AuthContextType {
   user: AppUser | null;
   isLoading: boolean;
   loading: boolean;
-  login: (role: UserRole, username: string, accessKey: string) => Promise<{ error?: string }>;
+  login: (email: string, password: string) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const mapRecordToUser = (record: RecordModel | null): AppUser | null => {
+  if (!record) {
+    return null;
+  }
+
+  const role = record.role;
+  if (role !== 'coach' && role !== 'client') {
+    return null;
+  }
+
+  return {
+    id: record.id,
+    role,
+    email: typeof record.email === 'string' ? record.email : '',
+    name: typeof record.name === 'string' && record.name.length > 0 ? record.name : undefined,
+    avatar: typeof record.avatar === 'string' && record.avatar.length > 0 ? record.avatar : undefined,
+  };
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -30,20 +50,56 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const login = async (_role: UserRole, _username: string, _accessKey: string) => {
-    return { error: 'Auth migration in progress: PocketBase is not connected yet.' };
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setUser(mapRecordToUser(pb.authStore.model as RecordModel | null));
+    setIsLoading(false);
+
+    const unsubscribe = pb.authStore.onChange((_token, model) => {
+      setUser(mapRecordToUser(model as RecordModel | null));
+      setIsLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+
+      const authData = await pb.collection('users').authWithPassword(email, password);
+      const authenticatedUser = mapRecordToUser(authData.record as RecordModel);
+
+      if (!authenticatedUser) {
+        pb.authStore.clear();
+        setUser(null);
+        return { error: 'Rôle utilisateur invalide.' };
+      }
+
+      setUser(authenticatedUser);
+      return {};
+    } catch {
+      return { error: 'Erreur de connexion. Vérifiez votre email et votre mot de passe.' };
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = async () => {
-    return;
+    pb.authStore.clear();
+    setUser(null);
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user: null,
-        isLoading: false,
-        loading: false,
+        user,
+        isLoading,
+        loading: isLoading,
         login,
         logout,
       }}

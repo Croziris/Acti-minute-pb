@@ -6,9 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { toast } from '@/hooks/use-toast';
+import { extractYouTubeVideoId } from '@/lib/utils';
 
 interface Exercise {
   id: string;
@@ -77,21 +77,17 @@ export const EditExerciseDialog: React.FC<Props> = ({
 
     try {
       setSaving(true);
-      
-      const { error } = await supabase
-        .from('exercise')
-        .update({
-          libelle: formData.libelle,
-          description: formData.description,
-          youtube_url: formData.youtube_url,
-          categories: formData.categories,
-          groupes: formData.groupes,
-          niveau: formData.niveau,
-          materiel: formData.materiel,
-        })
-        .eq('id', exercise.id);
 
-      if (error) throw error;
+      await pb.collection('exercises').update(exercise.id, {
+        libelle: formData.libelle,
+        description: formData.description,
+        youtube_url: formData.youtube_url,
+        video_id: extractYouTubeVideoId(formData.youtube_url),
+        categories: formData.categories,
+        groupes: formData.groupes,
+        niveau: formData.niveau,
+        materiel: formData.materiel,
+      });
 
       toast({
         title: "Exercice modifié",
@@ -100,11 +96,10 @@ export const EditExerciseDialog: React.FC<Props> = ({
 
       onOpenChange(false);
       onSuccess();
-    } catch (error) {
-      console.error('Error updating exercise:', error);
+    } catch (error: any) {
       toast({
         title: "Erreur",
-        description: "Impossible de modifier l'exercice",
+        description: error.message || "Impossible de modifier l'exercice",
         variant: "destructive",
       });
     } finally {
