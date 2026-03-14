@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,8 +23,9 @@ interface Exercise {
   groupes: string[];
   niveau?: string;
   materiel: string[];
-  video_provider: string;
+  tags?: string[];
   video_id?: string;
+  video_provider?: string;
   youtube_url?: string;
   verified: boolean;
   created_by?: string;
@@ -71,12 +72,22 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
     'Quadriceps', 'Ischio-jambiers', 'Mollets', 'Fessiers', 'Corps entier'
   ];
 
-  const NIVEAUX = ['Débutant', 'Intermédiaire', 'Avancé'];
+  const NIVEAUX = [
+    { label: 'Débutant', value: 'debutant' },
+    { label: 'Intermédiaire', value: 'intermediaire' },
+    { label: 'Avancé', value: 'avance' },
+  ];
   
   const MATERIEL = [
     'Aucun', 'Haltères', 'Barre', 'Élastiques', 'Kettlebell', 
     'Medecine ball', 'Banc', 'Pull-up bar', 'TRX'
   ];
+
+  const getNiveauLabel = (value?: string) => {
+    if (!value) return 'Tous niveaux';
+    const niveau = NIVEAUX.find((n) => n.value === value);
+    return niveau?.label || value;
+  };
 
   useEffect(() => {
     fetchExercises();
@@ -130,7 +141,8 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
         libelle: newExercise.libelle,
         description: newExercise.description,
         youtube_url: newExercise.youtube_url,
-        video_id: extractYouTubeVideoId(newExercise.youtube_url),
+        video_id: extractYouTubeVideoId(newExercise.youtube_url) || '',
+        video_provider: newExercise.youtube_url ? 'youtube' : '',
         categories: newExercise.categories,
         groupes: newExercise.groupes,
         niveau: newExercise.niveau,
@@ -156,10 +168,11 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
         description: "L'exercice a été ajouté à la banque",
       });
 
-    } catch {
+    } catch (error: any) {
+      console.error('PocketBase error:', JSON.stringify(error?.response?.data));
       toast({
         title: "Erreur",
-        description: "Impossible d'ajouter l'exercice",
+        description: error?.response?.message || error?.message || "Impossible d'ajouter l'exercice",
         variant: "destructive",
       });
     }
@@ -316,8 +329,8 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
                           <SelectValue placeholder="Sélectionner niveau" />
                         </SelectTrigger>
                         <SelectContent>
-                          {NIVEAUX.map(niveau => (
-                            <SelectItem key={niveau} value={niveau}>{niveau}</SelectItem>
+                          {NIVEAUX.map((niveau) => (
+                            <SelectItem key={niveau.value} value={niveau.value}>{niveau.label}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -447,7 +460,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
 
               {/* Level and Material */}
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{exercise.niveau || 'Tous niveaux'}</span>
+                <span>{getNiveauLabel(exercise.niveau)}</span>
                 <span>{exercise.materiel.join(', ') || 'Aucun'}</span>
               </div>
 
@@ -562,3 +575,5 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
     </div>
   );
 };
+
+
