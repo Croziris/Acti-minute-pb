@@ -89,7 +89,7 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
 
       const progressData = await pb.collection('session_progress').getFullList({
         filter: `session = "${sessionId}"`,
-        sort: 'exercise,index_serie',
+        sort: 'index_serie',
         requestKey: null,
       });
 
