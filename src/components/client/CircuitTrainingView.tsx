@@ -89,7 +89,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
         console.log("📂 Chargement de la progression...");
         
         const data = await pb.collection('session_progress').getFullList({
-          filter: `session_id="${sessionId}"`,
+          filter: `session="${sessionId}"`,
           sort: 'circuit_number',
         });
 
@@ -181,12 +181,12 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       console.log(`💾 Sauvegarde : Circuit ${circuitNumber}, Tours ${roundsCompleted}`);
       
       const existing = await pb.collection('session_progress').getFullList({
-        filter: `session_id="${sessionId}" && circuit_number=${circuitNumber} && progress_type="circuit"`,
+        filter: `session="${sessionId}" && circuit_number=${circuitNumber} && progress_type="circuit"`,
         sort: '-created',
       });
 
       const payload = {
-        session_id: sessionId,
+        session: sessionId,
         circuit_number: circuitNumber,
         completed_rounds: roundsCompleted,
         exercise_data: currentExerciseData,
@@ -225,8 +225,8 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       const logsToSave = currentCircuitExercises.map(ex => {
         const data = exerciseData[ex.exercise_id] || { reps: ex.reps || 0, charge: ex.charge_cible || 0 };
         return {
-          session_id: sessionId,
-          exercise_id: ex.exercise_id,
+          session: sessionId,
+          exercise: ex.exercise_id,
           index_serie: globalTour,
           reps: data.reps,
           charge: data.charge || null,
@@ -311,7 +311,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       
       // Supprimer la progression sauvegardée
       const progressRecords = await pb.collection('session_progress').getFullList({
-        filter: `session_id="${sessionId}"`,
+        filter: `session="${sessionId}"`,
       });
       await Promise.all(
         progressRecords
@@ -336,8 +336,8 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
   const handleCircuitFeedbackSubmit = async () => {
     try {
       await pb.collection('session_progress').create({
-        session_id: sessionId,
-        exercise_id: null,
+        session: sessionId,
+        exercise: null,
         feedback_type: 'circuit',
         circuit_number: completedCircuitNumber,
         rpe: circuitRPE,
@@ -366,8 +366,8 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
   const handleFinalFeedbackSubmit = async () => {
     try {
       await pb.collection('session_progress').create({
-        session_id: sessionId,
-        exercise_id: null,
+        session: sessionId,
+        exercise: null,
         feedback_type: 'session',
         circuit_number: null,
         rpe: sessionRPE,

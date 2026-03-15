@@ -96,7 +96,6 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
         duree_estimee: dureeEstimee ? parseInt(dureeEstimee) : null,
         workout_type: workoutType,
         session_type: sessionType,
-        nombre_circuits: workoutType === 'circuit' ? circuitConfigs.length : 1,
         circuit_configs: workoutType === 'circuit' ? configs : null,
         // Garder la compatibilité avec l'ancien système
         circuit_rounds: workoutType === 'circuit' ? configs[0].rounds : null,

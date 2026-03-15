@@ -46,33 +46,33 @@ export const ClientHabitsTracker: React.FC<Props> = ({ clientId }) => {
 
       // Récupérer les habitudes assignées
       const assignments = await pb.collection('habit_assignments').getFullList({
-        filter: `client_id="${clientId}" && active=true`,
-        expand: 'habit_id',
+        filter: `client="${clientId}" && active=true`,
+        expand: 'habit',
       });
 
       // Récupérer les checks des 4 dernières semaines
       const checks = await pb.collection('habit_checks').getFullList({
-        filter: `client_id="${clientId}" && date >= "${format(fourWeeksAgo, 'yyyy-MM-dd')}"`,
+        filter: `client="${clientId}" && date >= "${format(fourWeeksAgo, 'yyyy-MM-dd')}"`,
       });
 
       // Grouper les checks par habit_id
       const checksMap = new Map<string, HabitCheck[]>();
       checks?.forEach((check: any) => {
-        if (!checksMap.has(check.habit_id)) {
-          checksMap.set(check.habit_id, []);
+        if (!checksMap.has(check.habit)) {
+          checksMap.set(check.habit, []);
         }
-        checksMap.get(check.habit_id)?.push(check as HabitCheck);
+        checksMap.get(check.habit)?.push(check as HabitCheck);
       });
 
       // Merger les données
       const habitsWithChecks = assignments?.map((assignment: any) => ({
         id: assignment.id,
         habit: {
-          id: assignment.expand?.habit_id?.id || assignment.habit_id,
-          titre: assignment.expand?.habit_id?.titre || '',
-          description: assignment.expand?.habit_id?.description,
+          id: assignment.expand?.habit?.id || assignment.habit,
+          titre: assignment.expand?.habit?.titre || '',
+          description: assignment.expand?.habit?.description,
         },
-        checks: checksMap.get(assignment.habit_id) || [],
+        checks: checksMap.get(assignment.habit) || [],
       })) || [];
 
       setHabits(habitsWithChecks);

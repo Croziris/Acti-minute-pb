@@ -74,14 +74,14 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
       setLoading(true);
 
       const weekPlansData = await pb.collection('week_plans').getFullList({
-        filter: `program_id="${programId}"`,
+        filter: `program="${programId}"`,
         sort: 'start_date',
       });
 
       const organized = await Promise.all(
         (weekPlansData || []).map(async (wp: any) => {
           const sessionsData = await pb.collection('sessions').getFullList({
-            filter: `week_plan_id="${wp.id}"`,
+            filter: `week_plan="${wp.id}"`,
             sort: 'index_num',
           });
 
@@ -89,7 +89,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
             sessionsData.map(async (s: any) => {
               const workoutIds = Array.isArray(s.workout_ids)
                 ? s.workout_ids
-                : (s.workout_id ? [s.workout_id] : []);
+                : (s.workout ? [s.workout] : []);
 
               if (workoutIds.length > 1) {
                 const workouts = await Promise.all(
@@ -119,8 +119,8 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                 } as Session;
               }
 
-              if (s.workout_id) {
-                const workout = await pb.collection('workout').getOne(s.workout_id);
+              if (s.workout) {
+                const workout = await pb.collection('workout').getOne(s.workout);
                 return {
                   id: s.id,
                   index_num: s.index_num,

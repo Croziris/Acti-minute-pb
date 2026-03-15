@@ -27,24 +27,24 @@ const ClientHome = () => {
     queryFn: async () => {
       if (!user) return [];
       const records = await pb.collection('sessions').getFullList({
-        filter: `client_id="${user.id}" && (statut="done" || statut="skipped")`,
+        filter: `client="${user.id}" && (statut="done" || statut="skipped")`,
         sort: '-date_terminee',
-        expand: 'workout_id,week_plan_id',
+        expand: 'workout,week_plan',
       });
 
       return records.slice(0, 20).map((record: any) => ({
         ...record,
-        workout: record.expand?.workout_id
+        workout: record.expand?.workout
           ? {
-              titre: record.expand.workout_id.titre,
-              description: record.expand.workout_id.description,
-              duree_estimee: record.expand.workout_id.duree_estimee,
+              titre: record.expand.workout.titre,
+              description: record.expand.workout.description,
+              duree_estimee: record.expand.workout.duree_estimee,
             }
           : null,
-        week_plan: record.expand?.week_plan_id
+        week_plan: record.expand?.week_plan
           ? {
-              start_date: record.expand.week_plan_id.start_date,
-              end_date: record.expand.week_plan_id.end_date,
+              start_date: record.expand.week_plan.start_date,
+              end_date: record.expand.week_plan.end_date,
             }
           : null,
       }));

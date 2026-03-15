@@ -43,7 +43,7 @@ const CoachRoutines = () => {
       setLoading(true);
 
       const routinesData = await pb.collection('routines').getFullList({
-        filter: `coach_id="${user.id}"`,
+        filter: `coach="${user.id}"`,
         sort: '-created',
       });
 
@@ -55,10 +55,10 @@ const CoachRoutines = () => {
       let exerciseCounts: Record<string, number> = {};
 
       if (exerciseRoutineIds.length > 0) {
-        const filter = exerciseRoutineIds.map((id) => `routine_id="${id}"`).join(' || ');
+        const filter = exerciseRoutineIds.map((id) => `routine="${id}"`).join(' || ');
         const exercisesData = await pb.collection('routine_exercises').getFullList({ filter });
         exercisesData.forEach((ex: any) => {
-          exerciseCounts[ex.routine_id] = (exerciseCounts[ex.routine_id] || 0) + 1;
+          exerciseCounts[ex.routine] = (exerciseCounts[ex.routine] || 0) + 1;
         });
       }
 

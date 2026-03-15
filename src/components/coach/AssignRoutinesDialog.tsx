@@ -52,18 +52,18 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
 
       // Fetch clients
       const programs = await pb.collection('programs').getFullList({
-        filter: `coach_id="${user.id}"`,
-        expand: 'client_id',
+        filter: `coach="${user.id}"`,
+        expand: 'client',
       });
 
       const uniqueClients = Array.from(
         new Map(
           programs?.map((p: any) => [
-            (p.expand?.client_id as any)?.id || p.client_id,
+            (p.expand?.client as any)?.id || p.client,
             {
-              id: (p.expand?.client_id as any)?.id || p.client_id,
-              handle: (p.expand?.client_id as any)?.handle || (p.expand?.client_id as any)?.name || (p.expand?.client_id as any)?.email || '',
-              avatar_url: (p.expand?.client_id as any)?.avatar_url || (p.expand?.client_id as any)?.avatar || null
+              id: (p.expand?.client as any)?.id || p.client,
+              handle: (p.expand?.client as any)?.handle || (p.expand?.client as any)?.name || (p.expand?.client as any)?.email || '',
+              avatar_url: (p.expand?.client as any)?.avatar_url || (p.expand?.client as any)?.avatar || null
             }
           ]) || []
         ).values()
@@ -79,10 +79,10 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
       const assignmentsMap: Record<string, string[]> = {};
       assignmentsData?.forEach(assignment => {
         if (assignment.active) {
-          if (!assignmentsMap[assignment.client_id]) {
-            assignmentsMap[assignment.client_id] = [];
+          if (!assignmentsMap[assignment.client]) {
+            assignmentsMap[assignment.client] = [];
           }
-          assignmentsMap[assignment.client_id].push(assignment.routine_id);
+          assignmentsMap[assignment.client].push(assignment.routine);
         }
       });
 
@@ -108,7 +108,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
       if (currentlyAssigned) {
         // Remove assignment
         const existingAssignments = await pb.collection('client_routines').getFullList({
-          filter: `client_id="${clientId}" && routine_id="${routineId}" && assigned_by="${user.id}"`,
+          filter: `client="${clientId}" && routine="${routineId}" && assigned_by="${user.id}"`,
         });
         await Promise.all(
           existingAssignments.map((assignment: any) =>
@@ -123,7 +123,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
       } else {
         // Check if assignment exists but is inactive
         const existingRecords = await pb.collection('client_routines').getFullList({
-          filter: `client_id="${clientId}" && routine_id="${routineId}" && assigned_by="${user.id}"`,
+          filter: `client="${clientId}" && routine="${routineId}" && assigned_by="${user.id}"`,
           sort: '-created',
         });
         const existing = existingRecords[0];
@@ -134,8 +134,8 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
         } else {
           // Create new assignment
           await pb.collection('client_routines').create({
-            client_id: clientId,
-            routine_id: routineId,
+            client: clientId,
+            routine: routineId,
             assigned_by: user.id,
             active: true
           });

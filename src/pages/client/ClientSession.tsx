@@ -104,15 +104,16 @@ const ClientSession = () => {
     }
     
     // Charger les informations du coach pour WhatsApp
-    if (session?.client_id) {
+    if ((session as any)?.client || (session as any)?.client_id) {
+      const clientId = (session as any).client || (session as any).client_id;
       pb.collection('programs')
         .getList(1, 1, {
-          filter: `client_id="${session.client_id}"`,
+          filter: `client="${clientId}"`,
           sort: '-created',
-          expand: 'coach_id',
+          expand: 'coach',
         })
         .then((result) => {
-          const coach = (result.items[0] as any)?.expand?.coach_id;
+          const coach = (result.items[0] as any)?.expand?.coach;
           if (coach?.phone) {
             setCoachPhone(coach.phone);
           }
@@ -128,7 +129,7 @@ const ClientSession = () => {
       
       try {
         const progressRecords = await pb.collection('session_progress').getFullList({
-          filter: `session_id="${session.id}" && progress_type="classic"`,
+          filter: `session="${session.id}" && progress_type="classic"`,
           sort: '-created',
         });
         const data = progressRecords[0] as any;
@@ -225,7 +226,7 @@ const ClientSession = () => {
         
         // Supprimer la progression sauvegardée (circuits + classique)
         const progressRecords = await pb.collection('session_progress').getFullList({
-          filter: `session_id="${session.id}"`,
+          filter: `session="${session.id}"`,
         });
         await Promise.all(
           progressRecords.map((record: any) => pb.collection('session_progress').delete(record.id))
@@ -292,12 +293,12 @@ const ClientSession = () => {
     
     try {
       const existing = await pb.collection('session_progress').getFullList({
-        filter: `session_id="${session.id}" && progress_type="classic"`,
+        filter: `session="${session.id}" && progress_type="classic"`,
         sort: '-created',
       });
 
       const payload = {
-        session_id: session.id,
+        session: session.id,
         completed_exercises: completedExerciseIds,
         progress_type: 'classic',
       };
@@ -392,8 +393,8 @@ const ClientSession = () => {
     try {
       // Enregistrer le feedback final en DB
       await pb.collection('session_progress').create({
-        session_id: session.id,
-        exercise_id: null, // null = feedback global de séance
+        session: session.id,
+        exercise: null, // null = feedback global de séance
         difficulte_0_10: feedback.difficulte,
         plaisir_0_10: feedback.plaisir,
         feedback_type: 'session',

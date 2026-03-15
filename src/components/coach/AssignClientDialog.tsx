@@ -66,15 +66,15 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
 
       // Récupérer tous les programmes avec les infos des coaches
       const allPrograms = await pb.collection('programs').getFullList({
-        expand: 'coach_id',
+        expand: 'coach',
       });
 
       // Créer une map des clients avec leur coach
       const clientCoachMap = new Map();
       allPrograms?.forEach((p: any) => {
-        clientCoachMap.set(p.client_id, {
-          coach_id: p.coach_id,
-          coach_handle: p.expand?.coach_id?.handle || p.expand?.coach_id?.name || 'Coach inconnu'
+        clientCoachMap.set(p.client, {
+          coach: p.coach,
+          coach_handle: p.expand?.coach?.handle || p.expand?.coach?.name || 'Coach inconnu'
         });
       });
 
@@ -84,7 +84,7 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
         return {
           ...c,
           coach_handle: assignment?.coach_handle,
-          is_available: !assignment || assignment.coach_id === user?.id
+          is_available: !assignment || assignment.coach === user?.id
         };
       }) || [];
 
@@ -109,18 +109,18 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
       setLoading(true);
 
       const existingPrograms = await pb.collection('programs').getFullList({
-        filter: `client_id="${clientId}"`,
+        filter: `client="${clientId}"`,
         sort: '-created',
       });
 
       if (existingPrograms.length > 0) {
         await pb.collection('programs').update(existingPrograms[0].id, {
-          coach_id: user.id,
+          coach: user.id,
         });
       } else {
         await pb.collection('programs').create({
-          client_id: clientId,
-          coach_id: user.id,
+          client: clientId,
+          coach: user.id,
           titre: 'Programme personnalisé',
         });
       }
