@@ -18,7 +18,7 @@ const ClientArticle = () => {
     queryKey: ['article', slug],
     queryFn: async () => {
       if (!slug) return null;
-      const data = await pb.collection('articles').getFirstListItem(`slug="${slug}"`, {
+      const data = await pb.collection('articles').getFirstListItem(`slug = "${slug}"`, {
         requestKey: null,
       });
       return data as any;

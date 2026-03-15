@@ -132,7 +132,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
 
     if (editingRoutine.type === 'exercises') {
       const exercisesData = await pb.collection('routine_exercises').getFullList({
-        filter: `routine="${editingRoutine.id}"`,
+        filter: `routine = "${editingRoutine.id}"`,
         sort: 'order_index',
         expand: 'exercise',
       });
@@ -259,7 +259,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
 
         // Delete existing exercises
         const existingExercises = await pb.collection('routine_exercises').getFullList({
-          filter: `routine="${routineId}"`,
+          filter: `routine = "${routineId}"`,
         });
         await Promise.all(existingExercises.map((item: any) => pb.collection('routine_exercises').delete(item.id)));
       } else {

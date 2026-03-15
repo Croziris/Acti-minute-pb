@@ -64,14 +64,14 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
   const fetchTemplates = async () => {
     try {
       const workoutsData = await pb.collection('workout').getFullList({
-        filter: 'is_template=true',
+        filter: 'is_template = true',
         sort: '-created',
       });
 
       const workoutsWithCount = await Promise.all(
         (workoutsData || []).map(async (workout: any) => {
           const workoutExercises = await pb.collection('workout_exercises').getFullList({
-            filter: `workout="${workout.id}"`,
+            filter: `workout = "${workout.id}"`,
           });
           
           return {
@@ -139,7 +139,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       const isoWeek = getISOWeek(weekStart);
 
       const existingWeekPlans = await pb.collection('week_plans').getFullList({
-        filter: `program="${programId}" && start_date="${weekStartStr}" && end_date="${weekEndStr}"`,
+        filter: `program = "${programId}" && start_date = "${weekStartStr}" && end_date = "${weekEndStr}"`,
         sort: '-created',
       });
       let weekPlan = existingWeekPlans[0] as any;
@@ -220,7 +220,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       const isoWeek = getISOWeek(weekStart);
 
       const existingWeekPlans = await pb.collection('week_plans').getFullList({
-        filter: `program="${programId}" && start_date="${weekStartStr}" && end_date="${weekEndStr}"`,
+        filter: `program = "${programId}" && start_date = "${weekStartStr}" && end_date = "${weekEndStr}"`,
         sort: '-created',
       });
       let weekPlan = existingWeekPlans[0] as any;

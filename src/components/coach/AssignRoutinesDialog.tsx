@@ -52,7 +52,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
 
       // Fetch clients
       const programs = await pb.collection('programs').getFullList({
-        filter: `coach="${user.id}"`,
+        filter: `coach = "${user.id}"`,
         expand: 'client',
       });
 
@@ -73,7 +73,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
 
       // Fetch existing assignments
       const assignmentsData = await pb.collection('client_routines').getFullList({
-        filter: `assigned_by="${user.id}"`,
+        filter: `assigned_by = "${user.id}"`,
       });
 
       const assignmentsMap: Record<string, string[]> = {};
@@ -108,7 +108,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
       if (currentlyAssigned) {
         // Remove assignment
         const existingAssignments = await pb.collection('client_routines').getFullList({
-          filter: `client="${clientId}" && routine="${routineId}" && assigned_by="${user.id}"`,
+          filter: `client = "${clientId}" && routine = "${routineId}" && assigned_by = "${user.id}"`,
         });
         await Promise.all(
           existingAssignments.map((assignment: any) =>
@@ -123,7 +123,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
       } else {
         // Check if assignment exists but is inactive
         const existingRecords = await pb.collection('client_routines').getFullList({
-          filter: `client="${clientId}" && routine="${routineId}" && assigned_by="${user.id}"`,
+          filter: `client = "${clientId}" && routine = "${routineId}" && assigned_by = "${user.id}"`,
           sort: '-created',
         });
         const existing = existingRecords[0];

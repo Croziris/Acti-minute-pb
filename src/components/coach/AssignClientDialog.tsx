@@ -109,7 +109,7 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
       setLoading(true);
 
       const existingPrograms = await pb.collection('programs').getFullList({
-        filter: `client="${clientId}"`,
+        filter: `client = "${clientId}"`,
         sort: '-created',
       });
 

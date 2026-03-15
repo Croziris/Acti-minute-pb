@@ -50,18 +50,18 @@ export const useRoutines = () => {
     setError(null);
 
     try {
-      const assignedRoutines = await pb.collection('client_routines').getFullList({
+      const assignments = await pb.collection('routine_assignments').getFullList({
         filter: `client = "${user.id}" && active = true`,
         expand: 'routine',
         requestKey: null,
       });
 
-      if (assignedRoutines.length === 0) {
+      if (assignments.length === 0) {
         setRoutines([]);
         return;
       }
 
-      const routineIds = assignedRoutines
+      const routineIds = assignments
         .map((assignment: any) => assignment.expand?.routine?.id || assignment.routine)
         .filter(Boolean) as string[];
 
@@ -86,9 +86,9 @@ export const useRoutines = () => {
 
       const exercisesMap = new Map<string, any[]>(exercisesByRoutine);
 
-      const mappedRoutines: Routine[] = assignedRoutines.map((cr: any) => {
-        const routineRecord = cr.expand?.routine;
-        const routineId = routineRecord?.id || cr.routine;
+      const mappedRoutines: Routine[] = assignments.map((assignment: any) => {
+        const routineRecord = assignment.expand?.routine;
+        const routineId = routineRecord?.id || assignment.routine;
         const exercises = exercisesMap.get(routineId) || [];
 
         return {

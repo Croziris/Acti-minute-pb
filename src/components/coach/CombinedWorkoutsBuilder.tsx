@@ -35,7 +35,7 @@ export const CombinedWorkoutsBuilder: React.FC<CombinedWorkoutsBuilderProps> = (
   const loadWorkouts = async () => {
     try {
       const data = await pb.collection('workout').getFullList({
-        filter: 'is_template=true',
+        filter: 'is_template = true',
         sort: 'titre',
       });
       setAvailableWorkouts((data || []) as unknown as Workout[]);

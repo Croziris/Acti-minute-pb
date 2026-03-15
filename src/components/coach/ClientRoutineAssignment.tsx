@@ -38,14 +38,14 @@ export const ClientRoutineAssignment: React.FC<ClientRoutineAssignmentProps> = (
 
       // Fetch coach's routines
       const routinesData = await pb.collection('routines').getFullList({
-        filter: `coach="${user.id}"`,
+        filter: `coach = "${user.id}"`,
       });
 
       setRoutines(routinesData as unknown as Routine[]);
 
       // Fetch assigned routines for this client
       const assignmentsData = await pb.collection('client_routines').getFullList({
-        filter: `client="${clientId}" && assigned_by="${user.id}" && active=true`,
+        filter: `client = "${clientId}" && assigned_by = "${user.id}" && active = true`,
       });
 
       setAssignedRoutineIds(assignmentsData?.map((a: any) => a.routine) || []);
@@ -70,7 +70,7 @@ export const ClientRoutineAssignment: React.FC<ClientRoutineAssignmentProps> = (
       if (currentlyAssigned) {
         // Remove assignment
         const existingAssignments = await pb.collection('client_routines').getFullList({
-          filter: `client="${clientId}" && routine="${routineId}" && assigned_by="${user.id}"`,
+          filter: `client = "${clientId}" && routine = "${routineId}" && assigned_by = "${user.id}"`,
         });
         await Promise.all(
           existingAssignments.map((assignment: any) =>
@@ -83,7 +83,7 @@ export const ClientRoutineAssignment: React.FC<ClientRoutineAssignmentProps> = (
       } else {
         // Check if assignment exists but is inactive
         const existingRecords = await pb.collection('client_routines').getFullList({
-          filter: `client="${clientId}" && routine="${routineId}" && assigned_by="${user.id}"`,
+          filter: `client = "${clientId}" && routine = "${routineId}" && assigned_by = "${user.id}"`,
           sort: '-created',
         });
         const existing = existingRecords[0];

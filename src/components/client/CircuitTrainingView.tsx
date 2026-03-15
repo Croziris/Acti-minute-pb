@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -89,8 +89,9 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
         console.log("📂 Chargement de la progression...");
         
         const data = await pb.collection('session_progress').getFullList({
-          filter: `session="${sessionId}"`,
+          filter: `session = "${sessionId}"`,
           sort: 'circuit_number',
+          requestKey: null,
         });
 
         if (data && data.length > 0) {
@@ -168,12 +169,12 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
     return { rounds: circuitRounds, rest: restTime };
   };
 
-  const handleExerciseDataChange = (exerciseId: string, data: { reps: number; charge: number }) => {
+  const handleExerciseDataChange = useCallback((exerciseId: string, data: { reps: number; charge: number }) => {
     setExerciseData(prev => ({
       ...prev,
       [exerciseId]: data
     }));
-  };
+  }, []);
 
   // Sauvegarder la progression automatiquement
   const saveProgress = async (circuitNumber: number, roundsCompleted: number, currentExerciseData: Record<string, any>) => {
@@ -181,8 +182,9 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       console.log(`💾 Sauvegarde : Circuit ${circuitNumber}, Tours ${roundsCompleted}`);
       
       const existing = await pb.collection('session_progress').getFullList({
-        filter: `session="${sessionId}" && circuit_number=${circuitNumber} && progress_type="circuit"`,
+        filter: `session = "${sessionId}" && circuit_number = ${circuitNumber} && progress_type = "circuit"`,
         sort: '-created',
+        requestKey: null,
       });
 
       const payload = {
@@ -194,9 +196,9 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       };
 
       if (existing.length > 0) {
-        await pb.collection('session_progress').update(existing[0].id, payload);
+        await pb.collection('session_progress').update(existing[0].id, payload, { requestKey: null });
       } else {
-        await pb.collection('session_progress').create(payload);
+        await pb.collection('session_progress').create(payload, { requestKey: null });
       }
       
       console.log(`✅ Sauvegarde OK : Circuit ${circuitNumber}, ${roundsCompleted} tours`);
@@ -238,7 +240,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
           pb.collection('session_progress').create({
             ...log,
             progress_type: 'set_log',
-          })
+          }, { requestKey: null })
         )
       );
 
@@ -311,12 +313,13 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       
       // Supprimer la progression sauvegardée
       const progressRecords = await pb.collection('session_progress').getFullList({
-        filter: `session="${sessionId}"`,
+        filter: `session = "${sessionId}"`,
+        requestKey: null,
       });
       await Promise.all(
         progressRecords
           .filter((record: any) => record.progress_type === 'circuit')
-          .map((record: any) => pb.collection('session_progress').delete(record.id))
+          .map((record: any) => pb.collection('session_progress').delete(record.id, { requestKey: null }))
       );
       
       console.log("🗑️ Progression supprimée (séance terminée)");
@@ -344,7 +347,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
         difficulte_0_10: circuitDifficulte,
         plaisir_0_10: circuitPlaisir,
         progress_type: 'feedback',
-      });
+      }, { requestKey: null });
 
       setShowCircuitFeedback(false);
       setShowTransition(true);
@@ -374,7 +377,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
         difficulte_0_10: sessionDifficulte,
         plaisir_0_10: sessionPlaisir,
         progress_type: 'feedback',
-      });
+      }, { requestKey: null });
 
       console.log("✅ Feedback final enregistré - Appel onAllComplete()");
       setShowFinalFeedback(false);

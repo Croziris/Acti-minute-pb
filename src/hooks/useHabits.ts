@@ -133,6 +133,43 @@ export const useHabits = () => {
         );
       }
 
+      // Update local state immediately for responsive UI, then re-sync from DB.
+      setHabits((prev) =>
+        prev.map((habit) => {
+          if (habit.id !== habitId) return habit;
+
+          const normalizedDate = normalizeDate(date);
+          const existingCheck = habit.checks.find(
+            (check) => normalizeDate(check.date) === normalizedDate
+          );
+
+          if (existingCheck) {
+            return {
+              ...habit,
+              checks: habit.checks.map((check) =>
+                normalizeDate(check.date) === normalizedDate
+                  ? { ...check, checked: !check.checked }
+                  : check
+              ),
+            };
+          }
+
+          return {
+            ...habit,
+            checks: [
+              ...habit.checks,
+              {
+                id: 'temp',
+                habit_id: habitId,
+                client_id: user.id,
+                date: normalizedDate,
+                checked: true,
+              },
+            ],
+          };
+        })
+      );
+
       await fetchHabits();
     } catch (err: any) {
       console.error('toggleHabitCheck error:', err);

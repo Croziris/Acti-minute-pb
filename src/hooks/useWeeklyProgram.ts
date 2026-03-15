@@ -58,20 +58,24 @@ export const useWeeklyProgram = () => {
     setError(null);
 
     try {
-      const program = await pb.collection('programs').getFirstListItem(`client = "${user.id}"`);
+      const program = await pb
+        .collection('programs')
+        .getFirstListItem(`client = "${user.id}"`, { requestKey: null });
       const currentISOWeek = getISOWeek(new Date());
 
       let weekPlanRecord: any = null;
       try {
-        weekPlanRecord = await pb.collection('weekplans').getFirstListItem(
-          `program = "${program.id}" && iso_week = ${currentISOWeek}`
+        weekPlanRecord = await pb.collection('week_plans').getFirstListItem(
+          `program = "${program.id}" && iso_week = ${currentISOWeek}`,
+          { requestKey: null }
         );
       } catch (e: any) {
         if (e?.status === 404) {
           try {
-            const allPlans = await pb.collection('weekplans').getFullList({
+            const allPlans = await pb.collection('week_plans').getFullList({
               filter: `program = "${program.id}"`,
               sort: '-iso_week',
+              requestKey: null,
             });
             weekPlanRecord = allPlans[0] ?? null;
           } catch {
@@ -85,9 +89,10 @@ export const useWeeklyProgram = () => {
       if (!weekPlanRecord) {
         try {
           const directSessions = await pb.collection('sessions').getFullList({
-            filter: `client = "${user.id}"`,
+            filter: `client = "${user.id}" && (statut = "planned" || statut = "ongoing")`,
             sort: 'index_num',
             expand: 'workout',
+            requestKey: null,
           });
 
           const mappedSessions: WeeklySession[] = directSessions.map((session: any) => ({
@@ -117,9 +122,10 @@ export const useWeeklyProgram = () => {
       }
 
       const sessions = await pb.collection('sessions').getFullList({
-        filter: `weekplan = "${weekPlanRecord.id}" && client = "${user.id}"`,
+        filter: `week_plan = "${weekPlanRecord.id}" && client = "${user.id}"`,
         sort: 'index_num',
         expand: 'workout',
+        requestKey: null,
       });
 
       const mappedSessions: WeeklySession[] = sessions.map((session: any) => ({
