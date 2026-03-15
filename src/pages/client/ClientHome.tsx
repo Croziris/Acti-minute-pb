@@ -89,7 +89,7 @@ const ClientHome = () => {
         {/* Header */}
         <div className="bg-gradient-card rounded-xl p-6 shadow-lg">
           <h1 className="text-2xl font-bold text-foreground mb-2">
-            Bonjour ! 👋
+            Bonjour {user?.name || 'sportif'}
           </h1>
           <p className="text-muted-foreground">
             Prêt(e) pour votre séance d'aujourd'hui ?

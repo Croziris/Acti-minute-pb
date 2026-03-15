@@ -64,8 +64,11 @@ export const RoutineTracker: React.FC = () => {
   const today = new Date().toISOString().split('T')[0];
 
   const getRoutineScore = (routine: Routine): number => {
-    const checkedDays = routine.tracking?.filter(track => track.completed).length || 0;
-    return Math.round((checkedDays / 7) * 100);
+    return (
+      routine.tracking?.filter(
+        (track) => weekDates.includes(track.date) && track.completed
+      ).length || 0
+    );
   };
 
   const isDateChecked = (routine: Routine, date: string): boolean => {
@@ -142,9 +145,9 @@ export const RoutineTracker: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge 
-                      variant={score >= 70 ?"default" : score >= 40 ?"secondary" : "destructive"}
+                      variant={score >= 5 ?"default" : score >= 3 ?"secondary" : "destructive"}
                     >
-                      {score}%
+                      {score}/7
                     </Badge>
                     <Button
                       size="sm"
@@ -191,15 +194,15 @@ export const RoutineTracker: React.FC = () => {
                 
                 <div className="mt-4 flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">
-                    {routine.tracking?.filter(t => t.completed).length || 0}/7 jours cette semaine
+                    {score}/7 jours cette semaine
                   </span>
                   <span className={`font-medium ${
-                    score >= 70 ?'text-green-600' : 
-                    score >= 40 ?'text-yellow-600' : 
+                    score >= 5 ?'text-green-600' : 
+                    score >= 3 ?'text-yellow-600' : 
                     'text-red-600'
                   }`}>
-                    {score >= 70 ?'Excellent !' : 
-                     score >= 40 ?'Bien' : 
+                    {score >= 5 ?'Excellent !' : 
+                     score >= 3 ?'Bien' : 
                      'À améliorer'}
                   </span>
                 </div>
