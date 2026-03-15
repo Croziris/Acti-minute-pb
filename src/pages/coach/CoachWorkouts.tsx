@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CoachLayout } from '@/components/layout/CoachLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,7 +51,7 @@ const CoachWorkouts = () => {
     session_type: (workout.session_type || 'main') as 'warmup' | 'main' | 'cooldown',
     circuit_rounds: workout.circuit_rounds ?? null,
     nombre_circuits: Array.isArray(workout.circuit_configs)
-      ? workout.circuit_configs.length
+      ?workout.circuit_configs.length
       : (workout.nombre_circuits || 1),
     circuit_configs: workout.circuit_configs || [{ rounds: 3, rest: 60 }],
     created_at: workout.created_at || workout.created || '',
@@ -218,8 +218,8 @@ const CoachWorkouts = () => {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-3xl font-bold">{editingWorkout.titre}</h1>
-              <Badge variant={editingWorkout.workout_type === 'circuit' ? 'default' : 'secondary'}>
-                {editingWorkout.workout_type === 'circuit' ? 'Circuit' : 'Classique'}
+              <Badge variant={editingWorkout.workout_type === 'circuit' ?'default' : 'secondary'}>
+                {editingWorkout.workout_type === 'circuit' ?'Circuit' : 'Classique'}
               </Badge>
             </div>
             {editingWorkout.description && (
@@ -256,7 +256,7 @@ const CoachWorkouts = () => {
           </Button>
         </div>
 
-        {workouts.length === 0 ? (
+        {workouts.length === 0 ?(
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <ClipboardList className="h-12 w-12 text-muted-foreground mb-4" />
@@ -293,8 +293,8 @@ const CoachWorkouts = () => {
                             🧘 Retour au Calme
                           </Badge>
                         )}
-                        <Badge variant={workout.workout_type === 'circuit' ? 'default' : 'secondary'}>
-                          {workout.workout_type === 'circuit' ? 'Circuit' : 'Classique'}
+                        <Badge variant={workout.workout_type === 'circuit' ?'default' : 'secondary'}>
+                          {workout.workout_type === 'circuit' ?'Circuit' : 'Classique'}
                         </Badge>
                       </div>
                       <CardTitle className="text-lg">{workout.titre}</CardTitle>
@@ -316,14 +316,14 @@ const CoachWorkouts = () => {
                     )}
                     <div className="flex items-center gap-1">
                       <Dumbbell className="h-4 w-4" />
-                      <span>{workout.exercise_count} exercice{workout.exercise_count > 1 ? 's' : ''}</span>
+                      <span>{workout.exercise_count} exercice{workout.exercise_count > 1 ?'s' : ''}</span>
                     </div>
                   </div>
 
                   {workout.workout_type === 'circuit' && workout.circuit_rounds && (
                     <div className="text-sm">
                       <Badge variant="outline">
-                        {workout.circuit_rounds} tour{workout.circuit_rounds > 1 ? 's' : ''}
+                        {workout.circuit_rounds} tour{workout.circuit_rounds > 1 ?'s' : ''}
                       </Badge>
                     </div>
                   )}

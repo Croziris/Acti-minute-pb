@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ClientLayout } from "@/components/layout/ClientLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,7 +38,7 @@ const ClientSession = () => {
 
   // Récupérer les workouts dans l'ordre avec vérification de sécurité
   const orderedWorkouts = React.useMemo(() => {
-    console.log('?? Calcul orderedWorkouts:', {
+    console.log('?Calcul orderedWorkouts:', {
       session: !!session,
       isCombined: isCombinedSession,
       session_workout_length: session?.session_workout?.length,
@@ -46,7 +46,7 @@ const ClientSession = () => {
     });
     
     if (!session) {
-      console.log('? Pas de session');
+      console.log('?Pas de session');
       return [];
     }
     
@@ -56,30 +56,30 @@ const ClientSession = () => {
         .sort((a, b) => a.order_index - b.order_index)
         .map(sw => sw.workout);
       
-      console.log('? Workouts combinés:', workouts.length, workouts);
+      console.log('?Workouts combinés:', workouts.length, workouts);
       return workouts;
     } else if (session.workout) {
-      console.log('? Workout simple:', session.workout);
+      console.log('?Workout simple:', session.workout);
       return [session.workout];
     }
     
-    console.log('?? Aucun workout');
+    console.log('?Aucun workout');
     return [];
   }, [session, isCombinedSession]);
 
   // Workout actuel (avec vérification de sécurité)
-  const currentWorkout = orderedWorkouts.length > 0 ? orderedWorkouts[currentWorkoutIndex] : null;
+  const currentWorkout = orderedWorkouts.length > 0 ?orderedWorkouts[currentWorkoutIndex] : null;
   const exercises = currentWorkout?.workout_exercise || [];
   const isCircuitWorkout = currentWorkout?.workout_type === "circuit";
 
   // Log pour débugger
   useEffect(() => {
-    console.log('?? État session:', {
+    console.log('?État session:', {
       session_id: session?.id,
       isCombined: isCombinedSession,
       nb_workouts: orderedWorkouts.length,
       currentIndex: currentWorkoutIndex,
-      currentWorkout: currentWorkout ? {
+      currentWorkout: currentWorkout ?{
         id: currentWorkout.id,
         titre: currentWorkout.titre,
         type: currentWorkout.workout_type,
@@ -89,7 +89,7 @@ const ClientSession = () => {
     });
   }, [session, orderedWorkouts, currentWorkoutIndex, currentWorkout, exercises, isCombinedSession]);
 
-  console.log('?? État final:', {
+  console.log('?État final:', {
     nb_workouts: orderedWorkouts.length,
     currentIndex: currentWorkoutIndex,
     currentWorkout: currentWorkout
@@ -136,20 +136,20 @@ const ClientSession = () => {
 
         if (data && data.completed_exercises) {
           const completedIds = data.completed_exercises as string[];
-          console.log("?? Progression classique restaurée:", completedIds);
+          console.log("?Progression classique restaurée:", completedIds);
           
           setCompletedExercises(new Set(completedIds));
           
           const exercises = session.workout?.workout_exercise || [];
           if (completedIds.length > 0) {
             toast({
-              title: "?? Progression restaurée",
-              description: `${completedIds.length}/${exercises.length} exercice${completedIds.length > 1 ? 's' : ''} déjà effectué${completedIds.length > 1 ? 's' : ''}`,
+              title: "?Progression restaurée",
+              description: `${completedIds.length}/${exercises.length} exercice${completedIds.length > 1 ?'s' : ''} déjà effectué${completedIds.length > 1 ?'s' : ''}`,
             });
           }
         }
       } catch (error) {
-        console.error('? Erreur chargement progression classique:', error);
+        console.error('?Erreur chargement progression classique:', error);
       }
     }
 
@@ -172,7 +172,7 @@ const ClientSession = () => {
         completedExercises.size === exercises.length && 
         exercises.length > 0) {
       
-      console.log("?? Détection fin de séance classique - tous les exercices complétés");
+      console.log("?Détection fin de séance classique - tous les exercices complétés");
       setShowFinalFeedback(true);
     }
   }, [session, completedExercises, sessionStarted, showValidationScreen, showFinalFeedback]);
@@ -243,7 +243,7 @@ const ClientSession = () => {
       setShowContactScreen(true);
 
       toast({
-        title: "? Séance validée !",
+        title: "?Séance validée !",
         description: "Félicitations pour cette séance !",
       });
     } catch (error) {
@@ -262,11 +262,11 @@ const ClientSession = () => {
 
   const handleWhatsAppContact = () => {
     const message = commentaireFin 
-      ? `Séance terminée ! ??\n\nMes ressentis :\n${commentaireFin}`
+      ?`Séance terminée ! ?\n\nMes ressentis :\n${commentaireFin}`
       : 'Séance terminée ! Je voulais te partager mes ressentis.';
     
     const whatsappUrl = coachPhone 
-      ? `https://wa.me/${coachPhone}?text=${encodeURIComponent(message)}`
+      ?`https://wa.me/${coachPhone}?text=${encodeURIComponent(message)}`
       : `https://wa.me/?text=${encodeURIComponent(message)}`;
     
     window.open(whatsappUrl, '_blank');
@@ -282,7 +282,7 @@ const ClientSession = () => {
       await saveClassicProgress(Array.from(newCompleted));
     }
     
-    console.log(`? Exercice ${exerciseId} marqué comme complété`);
+    console.log(`?Exercice ${exerciseId} marqué comme complété`);
   };
 
   const saveClassicProgress = async (completedExerciseIds: string[]) => {
@@ -310,9 +310,9 @@ const ClientSession = () => {
       }
       
       const exercises = session.workout?.workout_exercise || [];
-      console.log(`? Progression classique sauvegardée: ${completedExerciseIds.length}/${exercises.length} exercices`);
+      console.log(`?Progression classique sauvegardée: ${completedExerciseIds.length}/${exercises.length} exercices`);
     } catch (error) {
-      console.error('? Erreur sauvegarde progression classique:', error);
+      console.error('?Erreur sauvegarde progression classique:', error);
     }
   };
 
@@ -328,13 +328,13 @@ const ClientSession = () => {
   };
 
   const handleCircuitComplete = () => {
-    console.log("?? Circuit workout terminé");
+    console.log("?Circuit workout terminé");
     completeCurrentWorkout();
   };
 
   const completeCurrentWorkout = () => {
     if (!currentWorkout) {
-      console.error('? Impossible de compléter : currentWorkout est null');
+      console.error('?Impossible de compléter : currentWorkout est null');
       toast({
         title: "Erreur",
         description: "Impossible de terminer ce workout",
@@ -343,7 +343,7 @@ const ClientSession = () => {
       return;
     }
     
-    console.log(`? Workout ${currentWorkoutIndex + 1}/${orderedWorkouts.length} terminé: ${currentWorkout.titre}`);
+    console.log(`?Workout ${currentWorkoutIndex + 1}/${orderedWorkouts.length} terminé: ${currentWorkout.titre}`);
     
     setCompletedWorkouts(prev => new Set(prev).add(currentWorkoutIndex));
     setCompletedExercises(new Set()); // Reset pour le prochain workout
@@ -354,7 +354,7 @@ const ClientSession = () => {
       const nextWorkout = orderedWorkouts[nextIndex];
       
       if (!nextWorkout) {
-        console.error('? Workout suivant introuvable à l\'index', nextIndex);
+        console.error('?Workout suivant introuvable à l\'index', nextIndex);
         toast({
           title: "Erreur",
           description: "Impossible de charger le workout suivant",
@@ -367,7 +367,7 @@ const ClientSession = () => {
       
       toast({
         title: `Séance ${nextIndex + 1}/${orderedWorkouts.length}`,
-        description: `Passons à : ${nextWorkout.titre} ??`,
+        description: `Passons à : ${nextWorkout.titre} ?`,
       });
     } else {
       // Tous les workouts sont terminés
@@ -376,7 +376,7 @@ const ClientSession = () => {
   };
 
   const handleAllWorkoutsComplete = () => {
-    console.log("?? Tous les workouts terminés");
+    console.log("?Tous les workouts terminés");
     const allExerciseIds = exercises.map((e) => e.exercise.id);
     setCompletedExercises(new Set(allExerciseIds));
     setShowFinalFeedback(true);
@@ -403,7 +403,7 @@ const ClientSession = () => {
         progress_type: 'feedback',
       });
 
-      console.log("? Feedback final enregistré");
+      console.log("?Feedback final enregistré");
       
       // Fermer le modal
       setShowFinalFeedback(false);
@@ -459,18 +459,18 @@ const ClientSession = () => {
   // Pour les circuits, on compte les tours, pas les exercices
   const circuitConfigs = currentWorkout?.circuit_configs as Array<{rounds: number, rest: number}> | undefined;
   const totalRounds = isCircuitWorkout 
-    ? (circuitConfigs || [{ rounds: currentWorkout?.circuit_rounds || 3, rest: 60 }])
+    ?(circuitConfigs || [{ rounds: currentWorkout?.circuit_rounds || 3, rest: 60 }])
         .reduce((sum, config) => sum + config.rounds, 0)
     : 0;
   
   const completionRate = isCircuitWorkout 
-    ? 0 // La progression est gérée dans CircuitTrainingView
+    ?0 // La progression est gérée dans CircuitTrainingView
     : exercises.length > 0 
-      ? (completedExercises.size / exercises.length) * 100 
+      ?(completedExercises.size / exercises.length) * 100 
       : 0;
   
   const canComplete = isCircuitWorkout 
-    ? completedExercises.size === exercises.length // Tous les exercices marqués comme complétés par le circuit
+    ?completedExercises.size === exercises.length // Tous les exercices marqués comme complétés par le circuit
     : completionRate >= 100 || completedExercises.size === exercises.length;
 
   return (
@@ -484,7 +484,7 @@ const ClientSession = () => {
         />
 
         {/* ÉCRAN 1 : VALIDATION DE LA SÉANCE (après feedback final) */}
-        {showValidationScreen && !showContactScreen ? (
+        {showValidationScreen && !showContactScreen ?(
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-200 dark:border-green-800">
             <CardHeader className="text-center pb-4">
               <div className="flex justify-center mb-4">
@@ -493,7 +493,7 @@ const ClientSession = () => {
                 </div>
               </div>
               <CardTitle className="text-4xl font-bold text-green-900 dark:text-green-100">
-                ?? Félicitations !
+                ?Félicitations !
               </CardTitle>
               <p className="text-green-700 dark:text-green-300 mt-3 text-xl">
                 Tu as terminé tous les circuits !
@@ -504,26 +504,26 @@ const ClientSession = () => {
               {/* Résumé de la séance */}
               <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-green-200 dark:border-green-800">
                 <h3 className="font-semibold text-green-900 dark:text-green-100 mb-2">
-                  ?? Résumé de ta séance
+                  ?Résumé de ta séance
                 </h3>
                 <div className="text-sm text-muted-foreground space-y-1">
                   {isCombinedSession && (
-                    <p>? {orderedWorkouts.length} séance{orderedWorkouts.length > 1 ? 's' : ''} complétée{orderedWorkouts.length > 1 ? 's' : ''}</p>
+                    <p>?{orderedWorkouts.length} séance{orderedWorkouts.length > 1 ?'s' : ''} complétée{orderedWorkouts.length > 1 ?'s' : ''}</p>
                   )}
                   {isCircuitWorkout && totalRounds > 0 && (
-                    <p>? {totalRounds} tours effectués</p>
+                    <p>?{totalRounds} tours effectués</p>
                   )}
-                  <p>? {exercises.length} exercice{exercises.length > 1 ? 's' : ''} réalisé{exercises.length > 1 ? 's' : ''}</p>
+                  <p>?{exercises.length} exercice{exercises.length > 1 ?'s' : ''} réalisé{exercises.length > 1 ?'s' : ''}</p>
                 </div>
               </div>
 
               {/* Zone de commentaire optionnel */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-green-900 dark:text-green-100">
-                  ?? Commentaire (optionnel)
+                  ?Commentaire (optionnel)
                 </label>
                 <Textarea
-                  placeholder="Comment t'es-tu senti ? Des remarques pour ton coach ?"
+                  placeholder="Comment t'es-tu senti ?Des remarques pour ton coach ?"
                   value={commentaireFin}
                   onChange={(e) => setCommentaireFin(e.target.value)}
                   className="min-h-[100px] bg-white dark:bg-gray-900 border-green-200 dark:border-green-800"
@@ -544,7 +544,7 @@ const ClientSession = () => {
               {/* Message d'info */}
               <div className="bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
                 <p className="text-xs text-center text-green-700 dark:text-green-400">
-                  ?? Valide ta séance pour sauvegarder tes performances
+                  ?Valide ta séance pour sauvegarder tes performances
                 </p>
               </div>
             </CardContent>
@@ -552,7 +552,7 @@ const ClientSession = () => {
         )
         
         /* ÉCRAN 2 : CONTACT COACH (après validation) */
-        : showContactScreen ? (
+        : showContactScreen ?(
           <Card className="bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/20 dark:to-sky-950/20 border-2 border-blue-200 dark:border-blue-800">
             <CardHeader className="text-center pb-4">
               <div className="flex justify-center mb-4">
@@ -561,7 +561,7 @@ const ClientSession = () => {
                 </div>
               </div>
               <CardTitle className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                ? Séance enregistrée !
+                ?Séance enregistrée !
               </CardTitle>
               <p className="text-blue-700 dark:text-blue-300 mt-2">
                 N'hésite pas à partager tes ressentis avec ton coach
@@ -617,14 +617,14 @@ const ClientSession = () => {
                     Retour
                   </Button>
                   <Badge
-                    variant={session.statut === "done" ? "default" : session.statut === "ongoing" ? "secondary" : "outline"}
+                    variant={session.statut === "done" ?"default" : session.statut === "ongoing" ?"secondary" : "outline"}
                   >
-                    {session.statut === "done" ? "Terminée" : session.statut === "ongoing" ? "En cours" : "À faire"}
+                    {session.statut === "done" ?"Terminée" : session.statut === "ongoing" ?"En cours" : "À faire"}
                   </Badge>
                 </div>
                 <h1 className="text-2xl font-bold">
                   {orderedWorkouts.length > 1 
-                    ? `Session combinée (${orderedWorkouts.length} séances)`
+                    ?`Session combinée (${orderedWorkouts.length} séances)`
                     : currentWorkout?.titre || `Séance ${session.index_num}`
                   }
                 </h1>
@@ -649,25 +649,25 @@ const ClientSession = () => {
                           key={`overview-${workout.id || index}`}
                           className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
                             index === currentWorkoutIndex 
-                              ? 'bg-purple-600 text-white shadow-lg scale-105' 
+                              ?'bg-purple-600 text-white shadow-lg scale-105' 
                               : completedWorkouts.has(index)
-                                ? 'bg-green-100 dark:bg-green-900/30 opacity-75' 
+                                ?'bg-green-100 dark:bg-green-900/30 opacity-75' 
                                 : 'bg-white dark:bg-gray-800 opacity-60'
                           }`}
                         >
                           <Badge 
-                            variant={index === currentWorkoutIndex ? 'default' : 'outline'} 
-                            className={`font-mono ${index === currentWorkoutIndex ? 'bg-white text-purple-600' : ''}`}
+                            variant={index === currentWorkoutIndex ?'default' : 'outline'} 
+                            className={`font-mono ${index === currentWorkoutIndex ?'bg-white text-purple-600' : ''}`}
                           >
                             {index + 1}
                           </Badge>
                           <span className="text-xl">
-                            {workout?.session_type === 'warmup' && '??'}
-                            {workout?.session_type === 'main' && '??'}
-                            {workout?.session_type === 'cooldown' && '??'}
-                            {!workout?.session_type && '??'}
+                            {workout?.session_type === 'warmup' && '?'}
+                            {workout?.session_type === 'main' && '?'}
+                            {workout?.session_type === 'cooldown' && '?'}
+                            {!workout?.session_type && '?'}
                           </span>
-                          <span className={`font-medium flex-1 ${index === currentWorkoutIndex ? 'font-bold' : ''}`}>
+                          <span className={`font-medium flex-1 ${index === currentWorkoutIndex ?'font-bold' : ''}`}>
                             {workout?.titre || 'Séance sans titre'}
                           </span>
                         {completedWorkouts.has(index) && (
@@ -723,7 +723,7 @@ const ClientSession = () => {
                   </div>
 
                    <div className="mb-6 p-4 bg-muted/30 rounded-lg">
-                      {orderedWorkouts.length > 1 ? (
+                      {orderedWorkouts.length > 1 ?(
                         <div className="space-y-4">
                           <p className="text-sm font-medium mb-3">
                             Session combinée de {orderedWorkouts.length} séances :
@@ -740,10 +740,10 @@ const ClientSession = () => {
                                         {wIdx + 1}
                                       </Badge>
                                       <span className="text-xl">
-                                        {workout?.session_type === 'warmup' && '??'}
-                                        {workout?.session_type === 'main' && '??'}
-                                        {workout?.session_type === 'cooldown' && '??'}
-                                        {!workout?.session_type && '??'}
+                                        {workout?.session_type === 'warmup' && '?'}
+                                        {workout?.session_type === 'main' && '?'}
+                                        {workout?.session_type === 'cooldown' && '?'}
+                                        {!workout?.session_type && '?'}
                                       </span>
                                        <CardTitle className="text-base">{workout?.titre || 'Séance sans titre'}</CardTitle>
                                   </div>
@@ -755,7 +755,7 @@ const ClientSession = () => {
                                 </CardHeader>
                                 <CardContent>
                                   <p className="text-xs text-muted-foreground mb-2">
-                                    {workoutExercises.length} exercice{workoutExercises.length > 1 ? 's' : ''}
+                                    {workoutExercises.length} exercice{workoutExercises.length > 1 ?'s' : ''}
                                   </p>
                                   <ul className="space-y-1">
                                     {workoutExercises.slice(0, 3).map((we, idx) => (
@@ -815,8 +815,8 @@ const ClientSession = () => {
             )}
 
             {/* Guard : vérifier que la session et les workouts sont valides */}
-            {sessionStarted && orderedWorkouts.length === 0 ? (
-              // ? Cas d'erreur : session démarrée mais aucun workout
+            {sessionStarted && orderedWorkouts.length === 0 ?(
+              // ?Cas d'erreur : session démarrée mais aucun workout
               <Card>
                 <CardContent className="p-8 text-center">
                   <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
@@ -830,8 +830,8 @@ const ClientSession = () => {
                   </Button>
                 </CardContent>
               </Card>
-            ) : sessionStarted && !currentWorkout ? (
-              // ? Cas d'erreur : workout actuel introuvable
+            ) : sessionStarted && !currentWorkout ?(
+              // ?Cas d'erreur : workout actuel introuvable
               <Card>
                 <CardContent className="p-8 text-center">
                   <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
@@ -841,7 +841,7 @@ const ClientSession = () => {
                   </p>
                   <Button 
                     onClick={() => {
-                      console.log('?? Reset index à 0');
+                      console.log('?Reset index à 0');
                       setCurrentWorkoutIndex(0);
                     }} 
                     variant="outline"
@@ -858,8 +858,8 @@ const ClientSession = () => {
                   </Button>
                 </CardContent>
               </Card>
-            ) : sessionStarted && currentWorkout && exercises.length === 0 ? (
-              // ? Cas d'erreur : workout sans exercices
+            ) : sessionStarted && currentWorkout && exercises.length === 0 ?(
+              // ?Cas d'erreur : workout sans exercices
               <Card>
                 <CardContent className="p-8 text-center">
                   <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -867,10 +867,10 @@ const ClientSession = () => {
                   <p className="text-muted-foreground mb-4">
                     Le workout "{currentWorkout?.titre}" ne contient pas d'exercices.
                   </p>
-                  {isCombinedSession && currentWorkoutIndex < orderedWorkouts.length - 1 ? (
+                  {isCombinedSession && currentWorkoutIndex < orderedWorkouts.length - 1 ?(
                     <Button 
                       onClick={() => {
-                        console.log('?? Skip workout vide');
+                        console.log('?Skip workout vide');
                         setCurrentWorkoutIndex(prev => prev + 1);
                       }}
                     >
@@ -884,24 +884,24 @@ const ClientSession = () => {
                   )}
                 </CardContent>
               </Card>
-            ) : sessionStarted && currentWorkout && exercises.length > 0 ? (
-              // ? Tout est OK : afficher la séance
+            ) : sessionStarted && currentWorkout && exercises.length > 0 ?(
+              // ?Tout est OK : afficher la séance
               <div className="space-y-4">
                 {/* Header du workout actuel */}
                 {orderedWorkouts.length > 1 && currentWorkout && (
                   <Card className={`border-2 ${
                     currentWorkout?.session_type === 'warmup' 
-                      ? 'bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 border-orange-500'
+                      ?'bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 border-orange-500'
                       : currentWorkout?.session_type === 'cooldown'
-                        ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 border-green-500'
+                        ?'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 border-green-500'
                         : 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 border-blue-500'
                   }`}>
                     <CardContent className="p-8 text-center">
                       <div className="text-5xl mb-3">
-                        {currentWorkout?.session_type === 'warmup' && '??'}
-                        {currentWorkout?.session_type === 'main' && '??'}
-                        {currentWorkout?.session_type === 'cooldown' && '??'}
-                        {!currentWorkout?.session_type && '??'}
+                        {currentWorkout?.session_type === 'warmup' && '?'}
+                        {currentWorkout?.session_type === 'main' && '?'}
+                        {currentWorkout?.session_type === 'cooldown' && '?'}
+                        {!currentWorkout?.session_type && '?'}
                       </div>
                       
                       <Badge variant="outline" className="mb-2">
@@ -924,7 +924,7 @@ const ClientSession = () => {
                 )}
 
                 {/* Exercices */}
-                {isCircuitWorkout ? (
+                {isCircuitWorkout ?(
                   <CircuitTrainingView
                     exercises={exercises}
                     circuitRounds={currentWorkout?.circuit_rounds || 3}
@@ -949,7 +949,7 @@ const ClientSession = () => {
                             ? null
                             : (feedback) => handleExerciseComplete(workoutExercise.exercise.id)
                         }
-                        showFeedback={currentWorkout ? !['warmup', 'cooldown'].includes(currentWorkout.session_type || '') : true}
+                        showFeedback={currentWorkout ?!['warmup', 'cooldown'].includes(currentWorkout.session_type || '') : true}
                       />
                     ))}
 
@@ -964,7 +964,7 @@ const ClientSession = () => {
                           >
                             <CheckCircle className="h-6 w-6 mr-3" />
                             {currentWorkoutIndex < orderedWorkouts.length - 1 
-                              ? `Terminer "${currentWorkout?.titre}" et continuer`
+                              ?`Terminer "${currentWorkout?.titre}" et continuer`
                               : `Terminer "${currentWorkout?.titre}"`
                             }
                           </Button>

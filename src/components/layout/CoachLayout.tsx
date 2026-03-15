@@ -47,7 +47,7 @@ export const CoachLayout: React.FC<CoachLayoutProps> = ({ children }) => {
               variant="ghost"
               onClick={() => navigate('/coach/dashboard')}
               className={`w-full justify-start text-nav-foreground hover:bg-white/10 ${
-                isActive('/coach/dashboard') ? 'bg-nav-active text-white' : ''
+                isActive('/coach/dashboard') ?'bg-nav-active text-white' : ''
               }`}
             >
               <LayoutDashboard className="h-5 w-5 mr-3" />
@@ -58,7 +58,7 @@ export const CoachLayout: React.FC<CoachLayoutProps> = ({ children }) => {
               variant="ghost"
               onClick={() => navigate('/coach/clients')}
               className={`w-full justify-start text-nav-foreground hover:bg-white/10 ${
-                isActive('/coach/client') ? 'bg-nav-active text-white' : ''
+                isActive('/coach/client') ?'bg-nav-active text-white' : ''
               }`}
             >
               <Users className="h-5 w-5 mr-3" />
@@ -69,7 +69,7 @@ export const CoachLayout: React.FC<CoachLayoutProps> = ({ children }) => {
               variant="ghost"
               onClick={() => navigate('/coach/workouts')}
               className={`w-full justify-start text-nav-foreground hover:bg-white/10 ${
-                isActive('/coach/workouts') ? 'bg-nav-active text-white' : ''
+                isActive('/coach/workouts') ?'bg-nav-active text-white' : ''
               }`}
             >
               <ClipboardList className="h-5 w-5 mr-3" />
@@ -80,7 +80,7 @@ export const CoachLayout: React.FC<CoachLayoutProps> = ({ children }) => {
               variant="ghost"
               onClick={() => navigate('/coach/exercises')}
               className={`w-full justify-start text-nav-foreground hover:bg-white/10 ${
-                isActive('/coach/exercises') ? 'bg-nav-active text-white' : ''
+                isActive('/coach/exercises') ?'bg-nav-active text-white' : ''
               }`}
             >
               <Library className="h-5 w-5 mr-3" />
@@ -91,7 +91,7 @@ export const CoachLayout: React.FC<CoachLayoutProps> = ({ children }) => {
               variant="ghost"
               onClick={() => navigate('/coach/routines')}
               className={`w-full justify-start text-nav-foreground hover:bg-white/10 ${
-                isActive('/coach/routines') ? 'bg-nav-active text-white' : ''
+                isActive('/coach/routines') ?'bg-nav-active text-white' : ''
               }`}
             >
               <Activity className="h-5 w-5 mr-3" />

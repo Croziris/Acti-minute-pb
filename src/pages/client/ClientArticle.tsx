@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { useQuery } from '@tanstack/react-query';
@@ -53,7 +53,7 @@ const ClientArticle = () => {
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
-                Article non trouvÃ© ou non disponible.
+                Article non trouvé ou non disponible.
               </p>
             </CardContent>
           </Card>

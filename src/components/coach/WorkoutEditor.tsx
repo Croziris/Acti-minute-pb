@@ -118,7 +118,7 @@ export const WorkoutEditor: React.FC<Props> = ({
         workout: workoutId,
         exercise: exercise.id,
         order_index: exercises.length,
-        series: workoutType === 'classic' ? 3 : null,
+        series: workoutType === 'classic' ?3 : null,
         reps: 10,
         circuit_number: selectedCircuitForAdd,
       });
@@ -150,7 +150,7 @@ export const WorkoutEditor: React.FC<Props> = ({
       await pb.collection('workout_exercises').update(exerciseId, { [field]: value });
 
       setExercises(prev => prev.map(ex => 
-        ex.id === exerciseId ? { ...ex, [field]: value } : ex
+        ex.id === exerciseId ?{ ...ex, [field]: value } : ex
       ));
     } catch (error: any) {
       console.error('Error updating exercise:', error);
@@ -188,7 +188,7 @@ export const WorkoutEditor: React.FC<Props> = ({
     if (direction === 'up' && currentIndex === 0) return;
     if (direction === 'down' && currentIndex === exercises.length - 1) return;
 
-    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    const newIndex = direction === 'up' ?currentIndex - 1 : currentIndex + 1;
     const newExercises = [...exercises];
     [newExercises[currentIndex], newExercises[newIndex]] = [newExercises[newIndex], newExercises[currentIndex]];
 
@@ -216,7 +216,7 @@ export const WorkoutEditor: React.FC<Props> = ({
 
   return (
     <div className="space-y-6">
-      {workoutType === 'circuit' && nombreCircuits > 1 ? (
+      {workoutType === 'circuit' && nombreCircuits > 1 ?(
         // Affichage par circuit
         <div className="space-y-6">
           {Array.from({ length: nombreCircuits }, (_, i) => i + 1).map((circuitNum) => {
@@ -231,7 +231,7 @@ export const WorkoutEditor: React.FC<Props> = ({
                       <CardTitle className="flex items-center gap-2">
                         Circuit {circuitNum}
                         <Badge variant="outline">
-                          {config.rounds} tour{config.rounds > 1 ? 's' : ''}
+                          {config.rounds} tour{config.rounds > 1 ?'s' : ''}
                         </Badge>
                         <Badge variant="secondary">
                           {config.rest}s repos
@@ -248,7 +248,7 @@ export const WorkoutEditor: React.FC<Props> = ({
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {circuitExercises.length === 0 ? (
+                  {circuitExercises.length === 0 ?(
                     <p className="text-muted-foreground text-center py-8">
                       Aucun exercice dans ce circuit
                     </p>
@@ -288,7 +288,7 @@ export const WorkoutEditor: React.FC<Props> = ({
             </div>
           </CardHeader>
           <CardContent>
-            {exercises.length === 0 ? (
+            {exercises.length === 0 ?(
               <div className="text-center py-12">
                 <Dumbbell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-lg font-medium mb-2">Aucun exercice ajouté</p>
@@ -395,7 +395,7 @@ const ExerciseItem: React.FC<{
             onClick={() => setExpanded(!expanded)}
             className="w-full"
           >
-            {expanded ? 'Masquer les détails' : 'Modifier les détails'}
+            {expanded ?'Masquer les détails' : 'Modifier les détails'}
           </Button>
 
           {expanded && (

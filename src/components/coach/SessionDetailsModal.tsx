@@ -96,13 +96,13 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
       });
 
       const workoutIds = Array.isArray((sessionData as any).workout_ids)
-        ? (sessionData as any).workout_ids
-        : ((sessionData as any).workout ? [(sessionData as any).workout] : []);
+        ?(sessionData as any).workout_ids
+        : ((sessionData as any).workout ?[(sessionData as any).workout] : []);
 
       const workouts = await Promise.all(
         workoutIds.map(async (workoutId: string) => {
           const baseWorkout = (sessionData as any).expand?.workout?.id === workoutId
-            ? (sessionData as any).expand.workout
+            ?(sessionData as any).expand.workout
             : await pb.collection('workout').getOne(workoutId);
 
           const workoutExercises = await pb.collection('workout_exercises').getFullList({
@@ -132,38 +132,38 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
         })
       );
 
-      const progressData = await pb.collection('session_progress').getFullList({
-        filter: `session="${sessionId}"`,
+      const setLogsRaw = await pb.collection('set_logs').getFullList({
+        filter: `session = "${sessionId}"`,
         sort: 'exercise,index_serie',
       });
 
-      const logsData: SetLog[] = progressData
-        .filter((item: any) => item.progress_type === 'set_log')
-        .map((item: any) => ({
-          id: item.id,
-          exercise_id: item.exercise,
-          index_serie: item.index_serie,
-          reps: item.reps ?? null,
-          charge: item.charge ?? null,
-          rpe: item.rpe ?? null,
-          commentaire: item.commentaire ?? null,
-        }));
+      const logsData: SetLog[] = setLogsRaw.map((item: any) => ({
+        id: item.id,
+        exercise_id: item.exercise,
+        index_serie: item.index_serie ?? 1,
+        reps: item.reps ?? null,
+        charge: item.charge ?? null,
+        rpe: item.rpe ?? null,
+        commentaire: item.commentaire ?? null,
+      }));
 
-      const feedbacksData: ExerciseFeedback[] = progressData
-        .filter((item: any) => item.progress_type === 'feedback')
-        .map((item: any) => ({
-          id: item.id,
-          exercise_id: item.exercise ?? null,
-          circuit_number: item.circuit_number ?? null,
-          feedback_type: item.feedback_type || 'session',
-          rpe: item.rpe ?? null,
-          plaisir_0_10: item.plaisir_0_10 ?? null,
-          difficulte_0_10: item.difficulte_0_10 ?? null,
-        }));
+      const hasFinalFeedback =
+        (sessionData as any).rpe_global != null ||
+        (sessionData as any).difficulte_globale != null ||
+        (sessionData as any).plaisir_global != null;
 
-      const exerciseFeedbacks = feedbacksData.filter((f) => f.exercise_id !== null);
-      const circuitFbs = feedbacksData.filter((f) => f.feedback_type === 'circuit' && f.exercise_id === null);
-      const finalFb = feedbacksData.find((f) => f.feedback_type === 'session' && f.exercise_id === null);
+      const finalFb: ExerciseFeedback | null = hasFinalFeedback ? {
+        id: sessionData.id,
+        exercise_id: null,
+        circuit_number: null,
+        feedback_type: 'session',
+        rpe: (sessionData as any).rpe_global ?? null,
+        plaisir_0_10: (sessionData as any).plaisir_global ?? null,
+        difficulte_0_10: (sessionData as any).difficulte_globale ?? null,
+      } : null;
+
+      const exerciseFeedbacks: ExerciseFeedback[] = [];
+      const circuitFbs: ExerciseFeedback[] = [];
 
       const isCombined = workouts.length > 1;
       let transformedSession: SessionDetails;
@@ -222,7 +222,7 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
       setSetLogs(logsData);
       setFeedbacks(exerciseFeedbacks);
       setCircuitFeedbacks(circuitFbs);
-      setFinalFeedback(finalFb || null);
+      setFinalFeedback(finalFb);
     } catch (error) {
       console.error('Error fetching session details:', error);
     } finally {
@@ -447,7 +447,7 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
             </div>
           )}
           
-          {session.statut === 'planned' ? (
+          {session.statut === 'planned' ?(
             <div className="space-y-4">
               <div className="bg-muted/50 p-4 rounded-lg">
                 <p className="text-sm text-muted-foreground">
@@ -456,7 +456,7 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
               </div>
               
               {/* Affichage des workouts pour sessions combinées */}
-              {session.isCombined && session.workouts ? (
+              {session.isCombined && session.workouts ?(
                 <div className="space-y-6">
                   {session.workouts.map((workout, wIdx) => {
                     const workoutExercises = session.workout.workout_exercises.filter(
@@ -556,7 +556,7 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                             {we.rpe_cible && ` (RPE ${we.rpe_cible})`}
                           </div>
 
-                          {logs.length > 0 ? (
+                          {logs.length > 0 ?(
                             <div className="space-y-2">
                               <div className="text-sm font-medium">Réalisé:</div>
                               {logs.map((log) => (
@@ -592,7 +592,7 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                           ) : (
                             <div className="text-sm text-muted-foreground italic">
                               {session.statut === 'in_progress' 
-                                ? 'Pas encore commencé cet exercice'
+                                ?'Pas encore commencé cet exercice'
                                 : 'Aucune donnée enregistrée'
                               }
                             </div>

@@ -39,7 +39,7 @@ const BreadcrumbLink = React.forwardRef<
     asChild?: boolean;
   }
 >(({ asChild, className, ...props }, ref) => {
-  const Comp = asChild ? Slot : "a";
+  const Comp = asChild ?Slot : "a";
 
   return <Comp ref={ref} className={cn("transition-colors hover:text-foreground", className)} {...props} />;
 });
@@ -61,7 +61,7 @@ BreadcrumbPage.displayName = "BreadcrumbPage";
 
 const BreadcrumbSeparator = ({ children, className, ...props }: React.ComponentProps<"li">) => (
   <li role="presentation" aria-hidden="true" className={cn("[&>svg]:size-3.5", className)} {...props}>
-    {children ?? <ChevronRight />}
+    {children ?<ChevronRight />}
   </li>
 );
 BreadcrumbSeparator.displayName = "BreadcrumbSeparator";

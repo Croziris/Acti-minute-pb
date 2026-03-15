@@ -122,6 +122,7 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
         await pb.collection('programs').create({
           client: clientId,
           coach: user.id,
+          statut: 'draft',
           titre: 'Programme personnalisé',
         });
       }
@@ -167,27 +168,27 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
           </div>
 
           <div className="max-h-[400px] overflow-y-auto space-y-2">
-            {loading ? (
+            {loading ?(
               <div className="text-center py-8 text-muted-foreground">
                 Chargement...
               </div>
-            ) : filteredClients.length === 0 ? (
+            ) : filteredClients.length === 0 ?(
               <div className="text-center py-8 text-muted-foreground">
-                {search ? 'Aucun résultat' : 'Aucun·e sportif·ve trouvé·e'}
+                {search ?'Aucun résultat' : 'Aucun·e sportif·ve trouvé·e'}
               </div>
             ) : (
               filteredClients.map((client) => (
                 <div
                   key={client.id}
                   className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
-                    client.is_available ? 'hover:bg-accent' : 'opacity-60'
+                    client.is_available ?'hover:bg-accent' : 'opacity-60'
                   }`}
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <Avatar>
                       <AvatarImage src={client.avatar} />
                       <AvatarFallback>
-                        {(client.name || '??').slice(0, 2).toUpperCase()}
+                        {(client.name || '?').slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
@@ -204,7 +205,7 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
                     onClick={() => handleAssignClient(client.id)}
                     disabled={loading || !client.is_available}
                   >
-                    {client.is_available ? 'Assigner' : 'Non disponible'}
+                    {client.is_available ?'Assigner' : 'Non disponible'}
                   </Button>
                 </div>
               ))

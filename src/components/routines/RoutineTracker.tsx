@@ -48,7 +48,7 @@ export const RoutineTracker: React.FC = () => {
     const today = new Date();
     const currentDay = today.getDay();
     const monday = new Date(today);
-    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+    monday.setDate(today.getDate() - (currentDay === 0 ?6 : currentDay - 1));
     
     const dates = [];
     for (let i = 0; i < 7; i++) {
@@ -113,7 +113,7 @@ export const RoutineTracker: React.FC = () => {
                   <div className="text-xs font-medium text-muted-foreground mb-1">{day}</div>
                   <div className={`text-sm p-1 rounded ${
                     weekDates[index] === today 
-                      ? 'bg-primary text-primary-foreground font-medium'
+                      ?'bg-primary text-primary-foreground font-medium'
                       : 'text-muted-foreground'
                   }`}>
                     {formatDate(weekDates[index])}
@@ -142,7 +142,7 @@ export const RoutineTracker: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge 
-                      variant={score >= 70 ? "default" : score >= 40 ? "secondary" : "destructive"}
+                      variant={score >= 70 ?"default" : score >= 40 ?"secondary" : "destructive"}
                     >
                       {score}%
                     </Badge>
@@ -168,17 +168,17 @@ export const RoutineTracker: React.FC = () => {
                     return (
                       <div key={date} className="text-center">
                         <Button
-                          variant={isChecked ? "default" : "outline"}
+                          variant={isChecked ?"default" : "outline"}
                           size="sm"
                           className={`w-full h-10 p-0 ${
-                            isToday ? 'ring-2 ring-primary ring-offset-2' : ''
+                            isToday ?'ring-2 ring-primary ring-offset-2' : ''
                           } ${
-                            isFuture ? 'opacity-50 cursor-not-allowed' : ''
+                            isFuture ?'opacity-50 cursor-not-allowed' : ''
                           }`}
                           onClick={() => !isFuture && toggleRoutineCheck(routine.id, date)}
                           disabled={isFuture}
                         >
-                          {isChecked ? (
+                          {isChecked ?(
                             <Check className="h-4 w-4" />
                           ) : (
                             <span className="text-xs">{DAYS_FR[index]}</span>
@@ -194,12 +194,12 @@ export const RoutineTracker: React.FC = () => {
                     {routine.tracking?.filter(t => t.completed).length || 0}/7 jours cette semaine
                   </span>
                   <span className={`font-medium ${
-                    score >= 70 ? 'text-green-600' : 
-                    score >= 40 ? 'text-yellow-600' : 
+                    score >= 70 ?'text-green-600' : 
+                    score >= 40 ?'text-yellow-600' : 
                     'text-red-600'
                   }`}>
-                    {score >= 70 ? 'Excellent !' : 
-                     score >= 40 ? 'Bien' : 
+                    {score >= 70 ?'Excellent !' : 
+                     score >= 40 ?'Bien' : 
                      'À améliorer'}
                   </span>
                 </div>
@@ -223,7 +223,7 @@ export const RoutineTracker: React.FC = () => {
                 )}
 
                 {selectedRoutine.type === 'video' && selectedRoutine.video_url && (
-                  <div className={isYouTubeShort(selectedRoutine.video_url) ? 'aspect-[9/16] max-w-md mx-auto' : 'aspect-video'}>
+                  <div className={isYouTubeShort(selectedRoutine.video_url) ?'aspect-[9/16] max-w-md mx-auto' : 'aspect-video'}>
                     {extractYouTubeVideoId(selectedRoutine.video_url) && (
                       <iframe
                         src={getYouTubeEmbedUrl(extractYouTubeVideoId(selectedRoutine.video_url)!, isYouTubeShort(selectedRoutine.video_url))}

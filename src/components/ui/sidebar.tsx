@@ -54,10 +54,10 @@ const SidebarProvider = React.forwardRef<
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen);
-  const open = openProp ?? _open;
+  const open = openProp ?_open;
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
-      const openState = typeof value === "function" ? value(open) : value;
+      const openState = typeof value === "function" ?value(open) : value;
       if (setOpenProp) {
         setOpenProp(openState);
       } else {
@@ -72,7 +72,7 @@ const SidebarProvider = React.forwardRef<
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
-    return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
+    return isMobile ?setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile, setOpen, setOpenMobile]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
@@ -90,7 +90,7 @@ const SidebarProvider = React.forwardRef<
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
-  const state = open ? "expanded" : "collapsed";
+  const state = open ?"expanded" : "collapsed";
 
   const contextValue = React.useMemo<SidebarContext>(
     () => ({
@@ -175,7 +175,7 @@ const Sidebar = React.forwardRef<
       ref={ref}
       className="group peer hidden text-sidebar-foreground md:block"
       data-state={state}
-      data-collapsible={state === "collapsed" ? collapsible : ""}
+      data-collapsible={state === "collapsed" ?collapsible : ""}
       data-variant={variant}
       data-side={side}
     >
@@ -186,7 +186,7 @@ const Sidebar = React.forwardRef<
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
+            ?"group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
             : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]",
         )}
       />
@@ -194,11 +194,11 @@ const Sidebar = React.forwardRef<
         className={cn(
           "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-200 ease-linear md:flex",
           side === "left"
-            ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
+            ?"left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
           // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"
-            ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
+            ?"p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
             : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
           className,
         )}
@@ -354,7 +354,7 @@ SidebarGroup.displayName = "SidebarGroup";
 
 const SidebarGroupLabel = React.forwardRef<HTMLDivElement, React.ComponentProps<"div"> & { asChild?: boolean }>(
   ({ className, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "div";
+    const Comp = asChild ?Slot : "div";
 
     return (
       <Comp
@@ -374,7 +374,7 @@ SidebarGroupLabel.displayName = "SidebarGroupLabel";
 
 const SidebarGroupAction = React.forwardRef<HTMLButtonElement, React.ComponentProps<"button"> & { asChild?: boolean }>(
   ({ className, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+    const Comp = asChild ?Slot : "button";
 
     return (
       <Comp
@@ -441,7 +441,7 @@ const SidebarMenuButton = React.forwardRef<
     tooltip?: string | React.ComponentProps<typeof TooltipContent>;
   } & VariantProps<typeof sidebarMenuButtonVariants>
 >(({ asChild = false, isActive = false, variant = "default", size = "default", tooltip, className, ...props }, ref) => {
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ?Slot : "button";
   const { isMobile, state } = useSidebar();
 
   const button = (
@@ -481,7 +481,7 @@ const SidebarMenuAction = React.forwardRef<
     showOnHover?: boolean;
   }
 >(({ className, asChild = false, showOnHover = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ?Slot : "button";
 
   return (
     <Comp
@@ -587,7 +587,7 @@ const SidebarMenuSubButton = React.forwardRef<
     isActive?: boolean;
   }
 >(({ asChild = false, size = "md", isActive, className, ...props }, ref) => {
-  const Comp = asChild ? Slot : "a";
+  const Comp = asChild ?Slot : "a";
 
   return (
     <Comp

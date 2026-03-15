@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export function extractYouTubeVideoId(url: string): string | null {
   const regex = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([^&\s]+)/;
   const match = url.match(regex);
-  return match ? match[1] : null;
+  return match ?match[1] : null;
 }
 
 export function isYouTubeShort(url: string): boolean {

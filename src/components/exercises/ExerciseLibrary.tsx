@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,19 +42,19 @@ const ensureStringArray = (value: unknown): string[] => {
 };
 
 const normalizeExercise = (record: any): Exercise => ({
-  id: typeof record?.id === 'string' ? record.id : '',
-  libelle: typeof record?.libelle === 'string' ? record.libelle : '',
-  description: typeof record?.description === 'string' ? record.description : undefined,
+  id: typeof record?.id === 'string' ?record.id : '',
+  libelle: typeof record?.libelle === 'string' ?record.libelle : '',
+  description: typeof record?.description === 'string' ?record.description : undefined,
   categories: ensureStringArray(record?.categories),
   groupes: ensureStringArray(record?.groupes),
-  niveau: typeof record?.niveau === 'string' ? record.niveau : undefined,
+  niveau: typeof record?.niveau === 'string' ?record.niveau : undefined,
   materiel: ensureStringArray(record?.materiel),
   tags: ensureStringArray(record?.tags),
-  video_id: typeof record?.video_id === 'string' ? record.video_id : undefined,
-  video_provider: typeof record?.video_provider === 'string' ? record.video_provider : undefined,
-  youtube_url: typeof record?.youtube_url === 'string' ? record.youtube_url : undefined,
+  video_id: typeof record?.video_id === 'string' ?record.video_id : undefined,
+  video_provider: typeof record?.video_provider === 'string' ?record.video_provider : undefined,
+  youtube_url: typeof record?.youtube_url === 'string' ?record.youtube_url : undefined,
   verified: Boolean(record?.verified),
-  created_by: typeof record?.created_by === 'string' ? record.created_by : undefined,
+  created_by: typeof record?.created_by === 'string' ?record.created_by : undefined,
 });
 
 export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
@@ -163,7 +163,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
         description: newExercise.description,
         youtube_url: newExercise.youtube_url,
         video_id: extractYouTubeVideoId(newExercise.youtube_url) || '',
-        video_provider: newExercise.youtube_url ? 'youtube' : '',
+        video_provider: newExercise.youtube_url ?'youtube' : '',
         categories: newExercise.categories,
         groupes: newExercise.groupes,
         niveau: newExercise.niveau,
@@ -305,7 +305,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
                       {CATEGORIES.map(cat => (
                         <Badge
                           key={cat}
-                          variant={newExercise.categories.includes(cat) ? "default" : "outline"}
+                          variant={newExercise.categories.includes(cat) ?"default" : "outline"}
                           className="cursor-pointer"
                           onClick={() => toggleArrayItem(
                             newExercise.categories, 
@@ -325,7 +325,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
                       {GROUPES.map(groupe => (
                         <Badge
                           key={groupe}
-                          variant={newExercise.groupes.includes(groupe) ? "default" : "outline"}
+                          variant={newExercise.groupes.includes(groupe) ?"default" : "outline"}
                           className="cursor-pointer"
                           onClick={() => toggleArrayItem(
                             newExercise.groupes, 
@@ -363,7 +363,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
                         {MATERIEL.map(mat => (
                           <Badge
                             key={mat}
-                            variant={newExercise.materiel.includes(mat) ? "default" : "outline"}
+                            variant={newExercise.materiel.includes(mat) ?"default" : "outline"}
                             className="cursor-pointer text-xs"
                             onClick={() => toggleArrayItem(
                               newExercise.materiel, 
@@ -487,7 +487,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
 
               {/* Actions */}
               <div className="flex space-x-2">
-                {selectionMode ? (
+                {selectionMode ?(
                   <Button
                     onClick={() => onSelectExercise?.(exercise)}
                     className="flex-1"
@@ -509,11 +509,11 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
                           <DialogHeader>
                             <DialogTitle>{exercise.libelle}</DialogTitle>
                           </DialogHeader>
-                          <div className={isYouTubeShort(exercise.youtube_url || '') ? "flex justify-center" : "aspect-video"}>
+                          <div className={isYouTubeShort(exercise.youtube_url || '') ?"flex justify-center" : "aspect-video"}>
                             <iframe
                               src={getYouTubeEmbedUrl(exercise.video_id, isYouTubeShort(exercise.youtube_url || ''))}
                               title={exercise.libelle}
-                              className={isYouTubeShort(exercise.youtube_url || '') ? "w-full max-w-[360px] h-[640px] rounded-lg" : "w-full h-full rounded-lg"}
+                              className={isYouTubeShort(exercise.youtube_url || '') ?"w-full max-w-[360px] h-[640px] rounded-lg" : "w-full h-full rounded-lg"}
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                               allowFullScreen
                             />

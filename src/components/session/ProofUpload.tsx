@@ -64,7 +64,7 @@ export const ProofUpload: React.FC<ProofUploadProps> = ({
       console.error('Upload error:', error);
       toast({
         title: "Erreur d'upload",
-        description: error instanceof Error ? error.message : "Erreur lors de l'upload",
+        description: error instanceof Error ?error.message : "Erreur lors de l'upload",
         variant: "destructive",
       });
       return null;
@@ -169,7 +169,7 @@ export const ProofUpload: React.FC<ProofUploadProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {previewUrl ? (
+        {previewUrl ?(
           <div className="space-y-3">
             <img 
               src={previewUrl} 
@@ -207,7 +207,7 @@ export const ProofUpload: React.FC<ProofUploadProps> = ({
                   className="flex items-center space-x-2"
                 >
                   <Camera className="h-4 w-4" />
-                  <span>{uploading ? 'Upload...' : 'Prendre photo'}</span>
+                  <span>{uploading ?'Upload...' : 'Prendre photo'}</span>
                 </Button>
                 
                 <Button 

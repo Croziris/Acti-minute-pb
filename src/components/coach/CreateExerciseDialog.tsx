@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { pb } from '@/lib/pocketbase';
 import {
   Dialog,
@@ -55,7 +55,7 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
         description: description.trim(),
         youtube_url: youtubeUrl.trim(),
         video_id: extractYouTubeVideoId(youtubeUrl.trim()) || '',
-        video_provider: youtubeUrl.trim() ? 'youtube' : '',
+        video_provider: youtubeUrl.trim() ?'youtube' : '',
         niveau: niveau.trim(),
         categories: [],
         groupes: [],
@@ -77,7 +77,7 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
       console.error('Error creating exercise:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de crÃ©er l\'exercice',
+        description: 'Impossible de créer l\'exercice',
         variant: 'destructive',
       });
     } finally {
@@ -91,7 +91,7 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
         <DialogHeader>
           <DialogTitle>Enregistrer un nouvel exercice</DialogTitle>
           <DialogDescription>
-            CrÃ©ez un exercice personnalisÃ© pour votre bibliothÃ¨que
+            Créez un exercice personnalisé pour votre bibliothèque
           </DialogDescription>
         </DialogHeader>
 
@@ -113,7 +113,7 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="DÃ©crivez l'exercice..."
+              placeholder="Décrivez l'exercice..."
               rows={3}
             />
           </div>
@@ -135,13 +135,13 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
               id="niveau"
               value={niveau}
               onChange={(e) => setNiveau(e.target.value)}
-              placeholder="Ex: dÃ©butant, intermÃ©diaire, avancÃ©"
+              placeholder="Ex: débutant, intermédiaire, avancé"
             />
           </div>
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'CrÃ©ation...' : 'CrÃ©er l\'exercice'}
+              {loading ?'Création...' : 'Créer l\'exercice'}
             </Button>
             <Button
               type="button"

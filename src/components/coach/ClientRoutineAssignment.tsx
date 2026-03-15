@@ -169,7 +169,7 @@ export const ClientRoutineAssignment: React.FC<ClientRoutineAssignmentProps> = (
                       {routine.title}
                     </Label>
                     <Badge variant="outline" className="text-xs">
-                      {routine.type === 'exercises' ? 'Exercices' : 'Vidéo'}
+                      {routine.type === 'exercises' ?'Exercices' : 'Vidéo'}
                     </Badge>
                   </div>
                   {routine.description && (

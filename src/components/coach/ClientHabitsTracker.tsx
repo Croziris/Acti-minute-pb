@@ -151,14 +151,14 @@ export const ClientHabitsTracker: React.FC<Props> = ({ clientId }) => {
                       key={day.toISOString()}
                       className={`
                         aspect-square rounded-lg flex flex-col items-center justify-center p-1 text-xs
-                        ${isChecked ? 'bg-green-100 dark:bg-green-900/30' : 'bg-muted'}
-                        ${isToday ? 'ring-2 ring-primary' : ''}
+                        ${isChecked ?'bg-green-100 dark:bg-green-900/30' : 'bg-muted'}
+                        ${isToday ?'ring-2 ring-primary' : ''}
                       `}
                     >
                       <span className="text-[10px] text-muted-foreground mb-1">
                         {format(day, 'dd/MM', { locale: fr })}
                       </span>
-                      {isChecked ? (
+                      {isChecked ?(
                         <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                       ) : (
                         <Circle className="h-4 w-4 text-muted-foreground" />

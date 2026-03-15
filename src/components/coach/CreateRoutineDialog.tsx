@@ -71,7 +71,7 @@ const SortableExerciseItem: React.FC<SortableExerciseItemProps> = ({
           type="number"
           placeholder="Reps"
           value={ex.repetitions || ''}
-          onChange={(e) => onUpdateReps(ex.exerciseId, e.target.value ? parseInt(e.target.value, 10) : null)}
+          onChange={(e) => onUpdateReps(ex.exerciseId, e.target.value ?parseInt(e.target.value, 10) : null)}
           className="w-20"
         />
         <Button
@@ -128,7 +128,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
     setDescription(editingRoutine.description || '');
     setType(editingRoutine.type);
     setVideoUrl(editingRoutine.video_url || '');
-    setTips(editingRoutine.tips?.length > 0 ? editingRoutine.tips : ['']);
+    setTips(editingRoutine.tips?.length > 0 ?editingRoutine.tips : ['']);
 
     if (editingRoutine.type === 'exercises') {
       const exercisesData = await pb.collection('routine_exercises').getFullList({
@@ -185,7 +185,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
   const updateExerciseReps = (exerciseId: string, reps: number | null) => {
     setSelectedExercises((prev) =>
       prev.map((item) =>
-        item.exerciseId === exerciseId ? { ...item, repetitions: reps } : item
+        item.exerciseId === exerciseId ?{ ...item, repetitions: reps } : item
       )
     );
   };
@@ -246,7 +246,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
         title,
         description: description || null,
         type,
-        video_url: type === 'video' ? videoUrl : null,
+        video_url: type === 'video' ?videoUrl : null,
         tips: filteredTips
       };
 
@@ -282,7 +282,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
         }
       }
 
-      toast.success(editingRoutine ? 'Routine mise à jour' : 'Routine créée avec succès');
+      toast.success(editingRoutine ?'Routine mise à jour' : 'Routine créée avec succès');
       onSuccess();
     } catch (err: any) {
       console.error('Error saving routine:', err);
@@ -301,7 +301,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
       <DialogContent className="max-w-3xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
-            {editingRoutine ? 'Modifier la routine' : 'Créer une routine'}
+            {editingRoutine ?'Modifier la routine' : 'Créer une routine'}
           </DialogTitle>
         </DialogHeader>
 
@@ -436,7 +436,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
             Annuler
           </Button>
           <Button onClick={handleSave} disabled={loading}>
-            {loading ? 'Enregistrement...' : editingRoutine ? 'Mettre à jour' : 'Créer'}
+            {loading ?'Enregistrement...' : editingRoutine ?'Mettre à jour' : 'Créer'}
           </Button>
         </DialogFooter>
       </DialogContent>

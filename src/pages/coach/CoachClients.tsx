@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CoachLayout } from '@/components/layout/CoachLayout';
 import { useCoachClients } from '@/hooks/useCoachClients';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +30,7 @@ const CoachClients = () => {
           </p>
         </div>
 
-        {clients.length === 0 ? (
+        {clients.length === 0 ?(
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
@@ -50,18 +50,18 @@ const CoachClients = () => {
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={client.avatar_url} />
+                      <AvatarImage src={client.avatar} />
                       <AvatarFallback>
-                        {client.handle?.slice(0, 2).toUpperCase()}
+                        {(client.name || '?').slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <CardTitle className="text-lg">{client.handle}</CardTitle>
+                      <CardTitle className="text-lg">{client.name}</CardTitle>
                       {client.program && (
-                        <CardDescription className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                           <Badge variant="secondary">{client.program.statut}</Badge>
-                          <span className="text-sm">{client.program.titre}</span>
-                        </CardDescription>
+                          <span>{client.program.titre}</span>
+                        </div>
                       )}
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground" />

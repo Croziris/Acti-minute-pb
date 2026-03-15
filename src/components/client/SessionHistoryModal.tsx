@@ -79,7 +79,7 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
       const workoutId = (sessionData as any).workout;
       const workoutData = (sessionData as any).expand?.workout;
       const workoutExercises = workoutId
-        ? await pb.collection('workout_exercises').getFullList({
+        ?await pb.collection('workout_exercises').getFullList({
             filter: `workout="${workoutId}"`,
             sort: 'order_index',
             expand: 'exercise',
@@ -182,7 +182,7 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {session.statut === 'done' ? (
+            {session.statut === 'done' ?(
               <CheckCircle2 className="h-5 w-5 text-green-500" />
             ) : (
               <XCircle className="h-5 w-5 text-red-500" />
@@ -191,7 +191,7 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
           </DialogTitle>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Badge variant="outline">
-              {session.statut === 'done' ? 'Terminée' : 'Sautée'}
+              {session.statut === 'done' ?'Terminée' : 'Sautée'}
             </Badge>
             {duration && (
               <span className="flex items-center gap-1">
@@ -248,7 +248,7 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
                           {we.rpe_cible && ` (RPE ${we.rpe_cible})`}
                         </div>
 
-                        {logs.length > 0 ? (
+                        {logs.length > 0 ?(
                           <div className="space-y-2">
                             <div className="text-sm font-medium">Réalisé:</div>
                             {logs.map((log) => (

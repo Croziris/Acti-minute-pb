@@ -56,7 +56,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
             size="sm"
             onClick={() => navigate('/client/home')}
             className={`flex flex-col items-center gap-1 px-3 py-2 h-auto min-h-[56px] rounded-xl transition-all duration-200 hover:bg-primary/5 ${
-              isActive('/client/home') ? 'text-primary' : 'text-muted-foreground'
+              isActive('/client/home') ?'text-primary' : 'text-muted-foreground'
             }`}
           >
             <Home className="h-6 w-6 shrink-0" />
@@ -68,7 +68,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
             size="sm"
             onClick={() => navigate('/client/habits')}
             className={`flex flex-col items-center gap-1 px-3 py-2 h-auto min-h-[56px] rounded-xl transition-all duration-200 hover:bg-primary/5 ${
-              isActive('/client/habits') ? 'text-primary' : 'text-muted-foreground'
+              isActive('/client/habits') ?'text-primary' : 'text-muted-foreground'
             }`}
           >
             <Calendar className="h-6 w-6 shrink-0" />
@@ -80,7 +80,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
             size="sm"
             onClick={() => navigate('/client/routines')}
             className={`flex flex-col items-center gap-1 px-3 py-2 h-auto min-h-[56px] rounded-xl transition-all duration-200 hover:bg-primary/5 ${
-              isActive('/client/routines') ? 'text-primary' : 'text-muted-foreground'
+              isActive('/client/routines') ?'text-primary' : 'text-muted-foreground'
             }`}
           >
             <Activity className="h-6 w-6 shrink-0" />
@@ -92,7 +92,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
             size="sm"
             onClick={() => navigate('/client/articles')}
             className={`flex flex-col items-center gap-1 px-3 py-2 h-auto min-h-[56px] rounded-xl transition-all duration-200 hover:bg-primary/5 ${
-              isActive('/client/articles') ? 'text-primary' : 'text-muted-foreground'
+              isActive('/client/articles') ?'text-primary' : 'text-muted-foreground'
             }`}
           >
             <BookOpen className="h-6 w-6 shrink-0" />

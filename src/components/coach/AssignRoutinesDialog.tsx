@@ -162,7 +162,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
         </DialogHeader>
 
         <ScrollArea className="max-h-[calc(90vh-150px)]">
-          {loading ? (
+          {loading ?(
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
@@ -177,7 +177,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
                 </Card>
               ))}
             </div>
-          ) : clients.length === 0 ? (
+          ) : clients.length === 0 ?(
             <Card>
               <CardContent className="p-8 text-center">
                 <p className="text-muted-foreground">Aucun client trouvé</p>
@@ -189,7 +189,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
                 <Card key={client.id}>
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
-                      {client.avatar_url ? (
+                      {client.avatar_url ?(
                         <img
                           src={client.avatar_url}
                           alt={client.handle}
@@ -226,7 +226,7 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
                               {routine.title}
                             </Label>
                             <Badge variant="outline" className="ml-2 text-xs">
-                              {routine.type === 'exercises' ? 'Exercices' : 'Vidéo'}
+                              {routine.type === 'exercises' ?'Exercices' : 'Vidéo'}
                             </Badge>
                           </div>
                           <Switch
