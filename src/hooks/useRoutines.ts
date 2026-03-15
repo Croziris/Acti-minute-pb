@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
-
-// TODO: remplacer par PocketBase
+import { useCallback, useEffect, useState } from 'react';
+import { pb } from '@/lib/pocketbase';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface RoutineExercise {
   id: string;
@@ -32,22 +32,161 @@ export interface Routine {
 }
 
 export const useRoutines = () => {
-  const routines: Routine[] = [];
+  const { user } = useAuth();
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleRoutineCheck = useCallback(async (_routineId: string, _date: string) => {
-    return;
-  }, []);
+  const fetchRoutines = useCallback(async () => {
+    if (!user?.id) {
+      setRoutines([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
 
-  const refetch = useCallback(async () => {
-    return;
-  }, []);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const assignedRoutines = await pb.collection('client_routines').getFullList({
+        filter: `client = "${user.id}" && active = true`,
+        expand: 'routine',
+        requestKey: null,
+      });
+
+      if (assignedRoutines.length === 0) {
+        setRoutines([]);
+        return;
+      }
+
+      const routineIds = assignedRoutines
+        .map((assignment: any) => assignment.expand?.routine?.id || assignment.routine)
+        .filter(Boolean) as string[];
+
+      const [trackingData, exercisesByRoutine] = await Promise.all([
+        pb.collection('routine_tracking').getFullList({
+          filter: `client = "${user.id}"`,
+          sort: '-date',
+          requestKey: null,
+        }),
+        Promise.all(
+          routineIds.map(async (routineId) => {
+            const routineExercises = await pb.collection('routine_exercises').getFullList({
+              filter: `routine = "${routineId}"`,
+              sort: 'order_index',
+              expand: 'exercise',
+              requestKey: `routine_exercises_${routineId}`,
+            });
+            return [routineId, routineExercises] as const;
+          })
+        ),
+      ]);
+
+      const exercisesMap = new Map<string, any[]>(exercisesByRoutine);
+
+      const mappedRoutines: Routine[] = assignedRoutines.map((cr: any) => {
+        const routineRecord = cr.expand?.routine;
+        const routineId = routineRecord?.id || cr.routine;
+        const exercises = exercisesMap.get(routineId) || [];
+
+        return {
+          id: routineId,
+          title: routineRecord?.title || '',
+          description: routineRecord?.description ?? null,
+          type: (routineRecord?.type || 'exercises') as Routine['type'],
+          video_url: routineRecord?.video_url ?? null,
+          tips: Array.isArray(routineRecord?.tips) ? routineRecord.tips : [],
+          exercises: exercises.map((re: any) => ({
+            id: re.id,
+            exercise_id: re.exercise,
+            order_index: re.order_index,
+            repetitions: re.repetitions ?? null,
+            exercise: {
+              id: re.expand?.exercise?.id || '',
+              libelle: re.expand?.exercise?.libelle || '',
+              description: re.expand?.exercise?.description ?? null,
+              video_id: re.expand?.exercise?.video_id ?? null,
+              video_provider: re.expand?.exercise?.video_provider ?? 'youtube',
+              youtube_url: re.expand?.exercise?.youtube_url ?? null,
+            },
+          })),
+          tracking: trackingData
+            .filter((tracking: any) => tracking.routine === routineId)
+            .map((tracking: any) => ({
+              date: tracking.date,
+              completed: Boolean(tracking.completed),
+            })),
+        };
+      });
+
+      setRoutines(mappedRoutines);
+    } catch (fetchError: any) {
+      setRoutines([]);
+      setError(
+        fetchError?.response?.message || fetchError?.message || 'Impossible de charger les routines'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    void fetchRoutines();
+  }, [fetchRoutines]);
+
+  const toggleRoutineCheck = useCallback(async (routineId: string, date: string) => {
+    if (!user) return;
+
+    setError(null);
+
+    try {
+      let existing: any = null;
+      try {
+        existing = await pb.collection('routine_tracking').getFirstListItem(
+          `client = "${user.id}" && routine = "${routineId}" && date = "${date}"`,
+          { requestKey: null }
+        );
+      } catch (e: any) {
+        if (e?.status !== 404) throw e;
+        existing = null;
+      }
+
+      if (existing) {
+        await pb.collection('routine_tracking').update(
+          existing.id,
+          {
+            completed: !existing.completed,
+          },
+          { requestKey: null }
+        );
+      } else {
+        await pb.collection('routine_tracking').create(
+          {
+            client: user.id,
+            routine: routineId,
+            date,
+            completed: true,
+          },
+          { requestKey: null }
+        );
+      }
+
+      await fetchRoutines();
+    } catch (err: any) {
+      console.error('toggleRoutineCheck error:', err);
+      setError(
+        err?.response?.message || err?.message || 'Impossible de mettre a jour cette routine'
+      );
+    }
+  }, [user, fetchRoutines]);
 
   return {
     data: routines,
     routines,
-    loading: false,
-    error: null as string | null,
+    loading,
+    error,
     toggleRoutineCheck,
-    refetch,
+    refetch: fetchRoutines,
   };
 };

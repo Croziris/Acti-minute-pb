@@ -59,13 +59,13 @@ export const HabitTracker: React.FC = () => {
   const weekDates = getCurrentWeekDates();
   const today = new Date().toISOString().split('T')[0];
 
-  const getHabitScore = (habit: Habit): number => {
-    const checkedDays = habit.checks.filter(check => check.checked).length;
-    return Math.round((checkedDays / 7) * 100);
-  };
-
   const isDateChecked = (habit: Habit, date: string): boolean => {
     return habit.checks.some(check => check.date === date && check.checked);
+  };
+
+  const getHabitScore = (habit: Habit): number => {
+    const checkedDays = weekDates.filter((date) => isDateChecked(habit, date)).length;
+    return checkedDays;
   };
 
   const isDateInFuture = (date: string): boolean => {
@@ -135,11 +135,11 @@ export const HabitTracker: React.FC = () => {
                     </p>
                   )}
                 </div>
-                <Badge 
-                  variant={score >= 70 ?"default" : score >= 40 ?"secondary" : "destructive"}
+                <Badge
+                  variant={score >= 5 ?"default" : score >= 3 ?"secondary" : "destructive"}
                   className="ml-2"
                 >
-                  {score}%
+                  {score}/7
                 </Badge>
               </div>
             </CardHeader>
@@ -177,15 +177,15 @@ export const HabitTracker: React.FC = () => {
               
               <div className="mt-4 flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {habit.checks.filter(c => c.checked).length}/7 jours cette semaine
+                  {score}/7 jours cette semaine
                 </span>
                 <span className={`font-medium ${
-                  score >= 70 ?'text-green-600' : 
-                  score >= 40 ?'text-yellow-600' : 
+                  score >= 5 ?'text-green-600' : 
+                  score >= 3 ?'text-yellow-600' : 
                   'text-red-600'
                 }`}>
-                  {score >= 70 ?'Excellent !' : 
-                   score >= 40 ?'Bien' : 
+                  {score >= 5 ?'Excellent !' : 
+                   score >= 3 ?'Bien' : 
                    'À améliorer'}
                 </span>
               </div>
