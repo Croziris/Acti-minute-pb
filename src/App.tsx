@@ -36,34 +36,39 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             
             {/* Routes client */}
+            <Route path="/client/dashboard" element={
+              <ProtectedRoute allowedRoles={["sportif"]}>
+                <ClientHome />
+              </ProtectedRoute>
+            } />
             <Route path="/client/home" element={
-              <ProtectedRoute allowedRoles={["spotif.ve"]}>
+              <ProtectedRoute allowedRoles={["sportif"]}>
                 <ClientHome />
               </ProtectedRoute>
             } />
             <Route path="/client/program" element={<Navigate to="/client/home" replace />} />
             <Route path="/client/session/:sessionId" element={
-              <ProtectedRoute allowedRoles={["spotif.ve"]}>
+              <ProtectedRoute allowedRoles={["sportif"]}>
                 <ClientSession />
               </ProtectedRoute>
             } />
             <Route path="/client/habits" element={
-              <ProtectedRoute allowedRoles={["spotif.ve"]}>
+              <ProtectedRoute allowedRoles={["sportif"]}>
                 <ClientHabits />
               </ProtectedRoute>
             } />
             <Route path="/client/routines" element={
-              <ProtectedRoute allowedRoles={["spotif.ve"]}>
+              <ProtectedRoute allowedRoles={["sportif"]}>
                 <ClientRoutines />
               </ProtectedRoute>
             } />
             <Route path="/client/articles" element={
-              <ProtectedRoute allowedRoles={["spotif.ve"]}>
+              <ProtectedRoute allowedRoles={["sportif"]}>
                 <ClientArticles />
               </ProtectedRoute>
             } />
             <Route path="/client/articles/:slug" element={
-              <ProtectedRoute allowedRoles={["spotif.ve"]}>
+              <ProtectedRoute allowedRoles={["sportif"]}>
                 <ClientArticle />
               </ProtectedRoute>
             } />

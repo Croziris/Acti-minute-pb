@@ -12,6 +12,9 @@ import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Exercise {
   id: string;
@@ -32,6 +35,56 @@ interface CreateRoutineDialogProps {
   editingRoutine?: any;
   onSuccess: () => void;
 }
+
+interface SortableExerciseItemProps {
+  ex: RoutineExercise;
+  idx: number;
+  onUpdateReps: (exerciseId: string, reps: number | null) => void;
+  onRemove: (exerciseId: string) => void;
+}
+
+const SortableExerciseItem: React.FC<SortableExerciseItemProps> = ({
+  ex,
+  idx,
+  onUpdateReps,
+  onRemove,
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: ex.exerciseId });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <Card ref={setNodeRef} style={style}>
+      <CardContent className="p-3 flex items-center gap-3">
+        <GripVertical
+          className="h-4 w-4 text-muted-foreground cursor-grab"
+          {...attributes}
+          {...listeners}
+        />
+        <Badge variant="outline">{idx + 1}</Badge>
+        <div className="flex-1">
+          <p className="font-medium text-sm">{ex.exerciseName}</p>
+        </div>
+        <Input
+          type="number"
+          placeholder="Reps"
+          value={ex.repetitions || ''}
+          onChange={(e) => onUpdateReps(ex.exerciseId, e.target.value ? parseInt(e.target.value, 10) : null)}
+          className="w-20"
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onRemove(ex.exerciseId)}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
 
 export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
   open,
@@ -121,14 +174,36 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
     ]);
   };
 
-  const removeExercise = (index: number) => {
-    setSelectedExercises(selectedExercises.filter((_, i) => i !== index));
+  const removeExercise = (exerciseId: string) => {
+    setSelectedExercises((prev) =>
+      prev
+        .filter((item) => item.exerciseId !== exerciseId)
+        .map((item, idx) => ({ ...item, orderIndex: idx }))
+    );
   };
 
-  const updateExerciseReps = (index: number, reps: number | null) => {
-    const updated = [...selectedExercises];
-    updated[index].repetitions = reps;
-    setSelectedExercises(updated);
+  const updateExerciseReps = (exerciseId: string, reps: number | null) => {
+    setSelectedExercises((prev) =>
+      prev.map((item) =>
+        item.exerciseId === exerciseId ? { ...item, repetitions: reps } : item
+      )
+    );
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setSelectedExercises((items) => {
+        const oldIndex = items.findIndex((i) => i.exerciseId === active.id);
+        const newIndex = items.findIndex((i) => i.exerciseId === over.id);
+        if (oldIndex < 0 || newIndex < 0) return items;
+
+        return arrayMove(items, oldIndex, newIndex).map((item, idx) => ({
+          ...item,
+          orderIndex: idx,
+        }));
+      });
+    }
   };
 
   const addTip = () => {
@@ -202,9 +277,9 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
           repetitions: ex.repetitions
         }));
 
-        await Promise.all(
-          exercisesToInsert.map((exercise) => pb.collection('routine_exercises').create(exercise))
-        );
+        for (const exercise of exercisesToInsert) {
+          await pb.collection('routine_exercises').create(exercise);
+        }
       }
 
       toast.success(editingRoutine ? 'Routine mise à jour' : 'Routine créée avec succès');
@@ -304,31 +379,24 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
 
                 <div className="space-y-2">
                   <Label>Exercices sélectionnés ({selectedExercises.length})</Label>
-                  {selectedExercises.map((ex, idx) => (
-                    <Card key={idx}>
-                      <CardContent className="p-3 flex items-center gap-3">
-                        <GripVertical className="h-4 w-4 text-muted-foreground" />
-                        <Badge variant="outline">{idx + 1}</Badge>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{ex.exerciseName}</p>
-                        </div>
-                        <Input
-                          type="number"
-                          placeholder="Reps"
-                          value={ex.repetitions || ''}
-                          onChange={(e) => updateExerciseReps(idx, e.target.value ? parseInt(e.target.value) : null)}
-                          className="w-20"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeExercise(idx)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext
+                      items={selectedExercises.map((ex) => ex.exerciseId)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2">
+                        {selectedExercises.map((ex, idx) => (
+                          <SortableExerciseItem
+                            key={ex.exerciseId}
+                            ex={ex}
+                            idx={idx}
+                            onUpdateReps={updateExerciseReps}
+                            onRemove={removeExercise}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                 </div>
               </div>
             )}
