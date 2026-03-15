@@ -46,13 +46,13 @@ export const ClientHabitsTracker: React.FC<Props> = ({ clientId }) => {
 
       // Récupérer les habitudes assignées
       const assignments = await pb.collection('habit_assignments').getFullList({
-        filter: `client="${clientId}" && active=true`,
+        filter: `client = "${clientId}" && active = true`,
         expand: 'habit',
       });
 
       // Récupérer les checks des 4 dernières semaines
       const checks = await pb.collection('habit_checks').getFullList({
-        filter: `client="${clientId}" && date >= "${format(fourWeeksAgo, 'yyyy-MM-dd')}"`,
+        filter: `client = "${clientId}" && date >= "${format(fourWeeksAgo, 'yyyy-MM-dd')}"`,
       });
 
       // Grouper les checks par habit_id

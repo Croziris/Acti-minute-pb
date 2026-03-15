@@ -108,7 +108,7 @@ const ClientSession = () => {
       const clientId = (session as any).client || (session as any).client_id;
       pb.collection('programs')
         .getList(1, 1, {
-          filter: `client="${clientId}"`,
+          filter: `client = "${clientId}"`,
           sort: '-created',
           expand: 'coach',
         })

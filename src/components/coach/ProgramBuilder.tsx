@@ -74,14 +74,14 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
       setLoading(true);
 
       const weekPlansData = await pb.collection('week_plans').getFullList({
-        filter: `program="${programId}"`,
+        filter: `program = "${programId}"`,
         sort: 'start_date',
       });
 
       const organized = await Promise.all(
         (weekPlansData || []).map(async (wp: any) => {
           const sessionsData = await pb.collection('sessions').getFullList({
-            filter: `week_plan="${wp.id}"`,
+            filter: `week_plan = "${wp.id}"`,
             sort: 'index_num',
           });
 

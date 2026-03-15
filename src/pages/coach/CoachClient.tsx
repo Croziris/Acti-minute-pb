@@ -26,7 +26,7 @@ const CoachClient = () => {
 
         // Fetch program
         try {
-          const programData = await pb.collection('programs').getFirstListItem(`client="${id}"`);
+          const programData = await pb.collection('programs').getFirstListItem(`client = "${id}"`);
           setProgram(programData);
         } catch (programError: any) {
           if (programError?.status === 404) {

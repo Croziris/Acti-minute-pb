@@ -53,12 +53,12 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
     try {
       // Get all habits
       const habitsData = await pb.collection('habits').getFullList({
-        filter: 'owner="coach"',
+        filter: 'owner = "coach"',
       });
 
       // Get assignments for this client
       const assignmentsData = await pb.collection('habit_assignments').getFullList({
-        filter: `client="${clientId}"`,
+        filter: `client = "${clientId}"`,
       });
 
       // Merge data
@@ -156,7 +156,7 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
     try {
       // First delete all assignments
       const assignments = await pb.collection('habit_assignments').getFullList({
-        filter: `habit="${habitToDelete}"`,
+        filter: `habit = "${habitToDelete}"`,
       });
       await Promise.all(
         assignments.map((assignment: any) => pb.collection('habit_assignments').delete(assignment.id))

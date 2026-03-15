@@ -106,7 +106,7 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
             : await pb.collection('workout').getOne(workoutId);
 
           const workoutExercises = await pb.collection('workout_exercises').getFullList({
-            filter: `workout="${workoutId}"`,
+            filter: `workout = "${workoutId}"`,
             sort: 'order_index',
             expand: 'exercise',
           });

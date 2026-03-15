@@ -63,7 +63,7 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
 
       // Fetch assigned routines
       const assignedRoutines = await pb.collection('client_routines').getFullList({
-        filter: `client="${clientId}" && assigned_by="${user.id}" && active=true`,
+        filter: `client = "${clientId}" && assigned_by = "${user.id}" && active = true`,
       });
 
       const routineIds = assignedRoutines?.map((ar: any) => ar.routine) || [];
@@ -74,7 +74,7 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
       }
 
       // Fetch routines details
-      const routineFilter = routineIds.map((id) => `id="${id}"`).join(' || ');
+      const routineFilter = routineIds.map((id) => `id = "${id}"`).join(' || ');
       const routinesData = await pb.collection('routines').getFullList({
         filter: routineFilter,
       });

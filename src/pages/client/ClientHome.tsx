@@ -27,7 +27,7 @@ const ClientHome = () => {
     queryFn: async () => {
       if (!user) return [];
       const records = await pb.collection('sessions').getFullList({
-        filter: `client="${user.id}" && (statut="done" || statut="skipped")`,
+        filter: `client = "${user.id}" && (statut = "done" || statut = "skipped")`,
         sort: '-date_terminee',
         expand: 'workout,week_plan',
       });
