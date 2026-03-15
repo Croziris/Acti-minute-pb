@@ -58,9 +58,12 @@ export const HabitTracker: React.FC = () => {
 
   const weekDates = getCurrentWeekDates();
   const today = new Date().toISOString().split('T')[0];
+  const normalizeDate = (value: string): string => value.split('T')[0].split(' ')[0];
 
   const isDateChecked = (habit: Habit, date: string): boolean => {
-    return habit.checks.some(check => check.date === date && check.checked);
+    return habit.checks.some(
+      (check) => normalizeDate(check.date) === normalizeDate(date) && check.checked
+    );
   };
 
   const getHabitScore = (habit: Habit): number => {
