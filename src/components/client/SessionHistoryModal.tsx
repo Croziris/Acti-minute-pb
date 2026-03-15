@@ -73,29 +73,29 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
       setLoading(true);
 
       const sessionData = await pb.collection('sessions').getOne(sessionId, {
-        expand: 'workout_id',
+        expand: 'workout',
       });
 
-      const workoutId = (sessionData as any).workout_id;
-      const workoutData = (sessionData as any).expand?.workout_id;
+      const workoutId = (sessionData as any).workout;
+      const workoutData = (sessionData as any).expand?.workout;
       const workoutExercises = workoutId
         ? await pb.collection('workout_exercises').getFullList({
             filter: `workout="${workoutId}"`,
             sort: 'order_index',
-            expand: 'exercise_id',
+            expand: 'exercise',
           })
         : [];
 
       const progressData = await pb.collection('session_progress').getFullList({
-        filter: `session_id="${sessionId}"`,
-        sort: 'exercise_id,index_serie',
+        filter: `session="${sessionId}"`,
+        sort: 'exercise,index_serie',
       });
 
       const logsData: SetLog[] = progressData
         .filter((item: any) => item.progress_type === 'set_log')
         .map((item: any) => ({
           id: item.id,
-          exercise_id: item.exercise_id,
+          exercise_id: item.exercise,
           index_serie: item.index_serie,
           reps: item.reps ?? null,
           charge: item.charge ?? null,
@@ -104,9 +104,9 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
         }));
 
       const feedbacksData: ExerciseFeedback[] = progressData
-        .filter((item: any) => item.progress_type === 'feedback' && item.exercise_id)
+        .filter((item: any) => item.progress_type === 'feedback' && item.exercise)
         .map((item: any) => ({
-          exercise_id: item.exercise_id,
+          exercise_id: item.exercise,
           plaisir_0_10: item.plaisir_0_10 ?? null,
           difficulte_0_10: item.difficulte_0_10 ?? null,
         }));
@@ -122,14 +122,14 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
           workout_type: workoutData?.workout_type || '',
           circuit_rounds: workoutData?.circuit_rounds ?? null,
           workout_exercises: workoutExercises.map((item: any) => ({
-            exercise_id: item.exercise_id,
+            exercise_id: item.exercise,
             order_index: item.order_index,
             series: item.series ?? null,
             reps: item.reps ?? null,
             charge_cible: item.charge_cible ?? null,
             rpe_cible: item.rpe_cible ?? null,
             exercise: {
-              libelle: item.expand?.exercise_id?.libelle || '',
+              libelle: item.expand?.exercise?.libelle || '',
             },
           })),
         },

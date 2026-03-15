@@ -63,10 +63,10 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
 
       // Fetch assigned routines
       const assignedRoutines = await pb.collection('client_routines').getFullList({
-        filter: `client_id="${clientId}" && assigned_by="${user.id}" && active=true`,
+        filter: `client="${clientId}" && assigned_by="${user.id}" && active=true`,
       });
 
-      const routineIds = assignedRoutines?.map((ar: any) => ar.routine_id) || [];
+      const routineIds = assignedRoutines?.map((ar: any) => ar.routine) || [];
 
       if (routineIds.length === 0) {
         setRoutines([]);
@@ -81,13 +81,13 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
 
       // Fetch tracking data
       const trackingData = await pb.collection('session_progress').getFullList({
-        filter: `client_id="${clientId}"`,
+        filter: `client="${clientId}"`,
       });
 
       // Map tracking to routines
       const trackingMap: Record<string, any[]> = {};
       trackingData?.forEach((track: any) => {
-        const routineId = track.routine_id;
+        const routineId = track.routine;
         const date = typeof track.date === 'string'
           ? track.date
           : (typeof track.completed_at === 'string' ? track.completed_at.split('T')[0] : null);
@@ -160,14 +160,14 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
   const fetchRoutineHistory = async (routineId: string) => {
     try {
       const data = await pb.collection('session_progress').getFullList({
-        filter: `client_id="${clientId}"`,
+        filter: `client="${clientId}"`,
         sort: '-created',
       });
 
       const dates = data
         ?.filter((item: any) => {
           const completed = typeof item.completed === 'boolean' ? item.completed : item.status === 'completed';
-          return item.routine_id === routineId && completed;
+          return item.routine === routineId && completed;
         })
         .map((item: any) => new Date(item.date || item.completed_at))
         .filter((date: Date) => !Number.isNaN(date.getTime())) || [];

@@ -74,8 +74,8 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
   const handleSetComplete = () => {
     const setData = {
-      session_id: sessionId,
-      exercise_id: exercise.id,
+      session: sessionId,
+      exercise: exercise.id,
       index_serie: currentSet,
       reps: currentReps,
       charge: currentWeight,
@@ -99,8 +99,8 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
   const handleFeedbackSubmit = () => {
     const feedbackData = {
-      session_id: sessionId,
-      exercise_id: exercise.id,
+      session: sessionId,
+      exercise: exercise.id,
       difficulte_0_10: feedback.difficulte,
       plaisir_0_10: feedback.plaisir,
       created_at: new Date().toISOString()

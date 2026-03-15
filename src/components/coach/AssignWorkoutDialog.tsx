@@ -139,14 +139,14 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       const isoWeek = getISOWeek(weekStart);
 
       const existingWeekPlans = await pb.collection('week_plans').getFullList({
-        filter: `program_id="${programId}" && start_date="${weekStartStr}" && end_date="${weekEndStr}"`,
+        filter: `program="${programId}" && start_date="${weekStartStr}" && end_date="${weekEndStr}"`,
         sort: '-created',
       });
       let weekPlan = existingWeekPlans[0] as any;
 
       if (!weekPlan) {
         weekPlan = await pb.collection('week_plans').create({
-          program_id: programId,
+          program: programId,
           iso_week: isoWeek,
           start_date: weekStartStr,
           end_date: weekEndStr,
@@ -159,9 +159,9 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       }
 
       await pb.collection('sessions').create({
-        client_id: clientId,
-        workout_id: selectedTemplate,
-        week_plan_id: weekPlan.id,
+        client: clientId,
+        workout: selectedTemplate,
+        week_plan: weekPlan.id,
         index_num: parseInt(sessionNumber),
         statut: 'planned'
       });
@@ -220,14 +220,14 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       const isoWeek = getISOWeek(weekStart);
 
       const existingWeekPlans = await pb.collection('week_plans').getFullList({
-        filter: `program_id="${programId}" && start_date="${weekStartStr}" && end_date="${weekEndStr}"`,
+        filter: `program="${programId}" && start_date="${weekStartStr}" && end_date="${weekEndStr}"`,
         sort: '-created',
       });
       let weekPlan = existingWeekPlans[0] as any;
 
       if (!weekPlan) {
         weekPlan = await pb.collection('week_plans').create({
-          program_id: programId,
+          program: programId,
           iso_week: isoWeek,
           start_date: weekStartStr,
           end_date: weekEndStr,
@@ -240,10 +240,10 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       }
 
       await pb.collection('sessions').create({
-        client_id: clientId,
-        workout_id: null,
+        client: clientId,
+        workout: null,
         workout_ids: selectedWorkouts.map((workout) => workout.id),
-        week_plan_id: weekPlan.id,
+        week_plan: weekPlan.id,
         index_num: parseInt(sessionNumber),
         statut: 'planned'
       });

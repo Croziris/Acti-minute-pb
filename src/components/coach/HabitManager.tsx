@@ -58,12 +58,12 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
 
       // Get assignments for this client
       const assignmentsData = await pb.collection('habit_assignments').getFullList({
-        filter: `client_id="${clientId}"`,
+        filter: `client="${clientId}"`,
       });
 
       // Merge data
       const assignmentsMap = new Map(
-        assignmentsData?.map((a: any) => [a.habit_id, a]) || []
+        assignmentsData?.map((a: any) => [a.habit, a]) || []
       );
 
       const mergedHabits = habitsData?.map((habit: any) => ({
@@ -96,8 +96,8 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
 
       // Assign to client
       await pb.collection('habit_assignments').create({
-        habit_id: newHabit.id,
-        client_id: clientId,
+        habit: newHabit.id,
+        client: clientId,
         active: true,
       });
 
@@ -132,8 +132,8 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
         } else {
           // Create new assignment
           await pb.collection('habit_assignments').create({
-            habit_id: habitId,
-            client_id: clientId,
+            habit: habitId,
+            client: clientId,
             active: true,
           });
         }
@@ -156,7 +156,7 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
     try {
       // First delete all assignments
       const assignments = await pb.collection('habit_assignments').getFullList({
-        filter: `habit_id="${habitToDelete}"`,
+        filter: `habit="${habitToDelete}"`,
       });
       await Promise.all(
         assignments.map((assignment: any) => pb.collection('habit_assignments').delete(assignment.id))

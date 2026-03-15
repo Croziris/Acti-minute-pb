@@ -92,23 +92,23 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
 
       // Récupérer les détails de la séance (combinée ou simple)
       const sessionData = await pb.collection('sessions').getOne(sessionId, {
-        expand: 'workout_id',
+        expand: 'workout',
       });
 
       const workoutIds = Array.isArray((sessionData as any).workout_ids)
         ? (sessionData as any).workout_ids
-        : ((sessionData as any).workout_id ? [(sessionData as any).workout_id] : []);
+        : ((sessionData as any).workout ? [(sessionData as any).workout] : []);
 
       const workouts = await Promise.all(
         workoutIds.map(async (workoutId: string) => {
-          const baseWorkout = (sessionData as any).expand?.workout_id?.id === workoutId
-            ? (sessionData as any).expand.workout_id
+          const baseWorkout = (sessionData as any).expand?.workout?.id === workoutId
+            ? (sessionData as any).expand.workout
             : await pb.collection('workout').getOne(workoutId);
 
           const workoutExercises = await pb.collection('workout_exercises').getFullList({
             filter: `workout="${workoutId}"`,
             sort: 'order_index',
-            expand: 'exercise_id',
+            expand: 'exercise',
           });
 
           return {
@@ -118,14 +118,14 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
             session_type: (baseWorkout as any).session_type,
             circuit_rounds: (baseWorkout as any).circuit_rounds ?? null,
             workout_exercise: workoutExercises.map((we: any) => ({
-              exercise_id: we.exercise_id,
+              exercise_id: we.exercise,
               order_index: we.order_index,
               series: we.series ?? null,
               reps: we.reps ?? null,
               charge_cible: we.charge_cible ?? null,
               rpe_cible: we.rpe_cible ?? null,
               exercise: {
-                libelle: we.expand?.exercise_id?.libelle || '',
+                libelle: we.expand?.exercise?.libelle || '',
               },
             })),
           };
@@ -133,15 +133,15 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
       );
 
       const progressData = await pb.collection('session_progress').getFullList({
-        filter: `session_id="${sessionId}"`,
-        sort: 'exercise_id,index_serie',
+        filter: `session="${sessionId}"`,
+        sort: 'exercise,index_serie',
       });
 
       const logsData: SetLog[] = progressData
         .filter((item: any) => item.progress_type === 'set_log')
         .map((item: any) => ({
           id: item.id,
-          exercise_id: item.exercise_id,
+          exercise_id: item.exercise,
           index_serie: item.index_serie,
           reps: item.reps ?? null,
           charge: item.charge ?? null,
@@ -153,7 +153,7 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
         .filter((item: any) => item.progress_type === 'feedback')
         .map((item: any) => ({
           id: item.id,
-          exercise_id: item.exercise_id ?? null,
+          exercise_id: item.exercise ?? null,
           circuit_number: item.circuit_number ?? null,
           feedback_type: item.feedback_type || 'session',
           rpe: item.rpe ?? null,

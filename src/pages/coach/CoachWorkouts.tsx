@@ -50,7 +50,9 @@ const CoachWorkouts = () => {
     workout_type: (workout.workout_type || 'classic') as 'classic' | 'circuit',
     session_type: (workout.session_type || 'main') as 'warmup' | 'main' | 'cooldown',
     circuit_rounds: workout.circuit_rounds ?? null,
-    nombre_circuits: Math.max(1, Number(workout.nombre_circuits ?? 1) || 1),
+    nombre_circuits: Array.isArray(workout.circuit_configs)
+      ? workout.circuit_configs.length
+      : (workout.nombre_circuits || 1),
     circuit_configs: workout.circuit_configs || [{ rounds: 3, rest: 60 }],
     created_at: workout.created_at || workout.created || '',
     exercise_count: exerciseCount,
@@ -151,8 +153,8 @@ const CoachWorkouts = () => {
         await Promise.all(
           exercises.map((ex) =>
             pb.collection('workout_exercises').create({
-              workout_id: newWorkout.id,
-              exercise_id: ex.exercise_id,
+              workout: newWorkout.id,
+              exercise: ex.exercise_id,
               order_index: ex.order_index,
               series: ex.series,
               reps: ex.reps,

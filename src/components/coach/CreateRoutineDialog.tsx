@@ -79,16 +79,16 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
 
     if (editingRoutine.type === 'exercises') {
       const exercisesData = await pb.collection('routine_exercises').getFullList({
-        filter: `routine_id="${editingRoutine.id}"`,
+        filter: `routine="${editingRoutine.id}"`,
         sort: 'order_index',
-        expand: 'exercise_id',
+        expand: 'exercise',
       });
 
       if (exercisesData) {
         setSelectedExercises(
           exercisesData.map((ex: any) => ({
-            exerciseId: ex.exercise_id,
-            exerciseName: ex.expand?.exercise_id?.libelle || '',
+            exerciseId: ex.exercise,
+            exerciseName: ex.expand?.exercise?.libelle || '',
             repetitions: ex.repetitions,
             orderIndex: ex.order_index
           }))
@@ -167,7 +167,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
       const filteredTips = tips.filter(tip => tip.trim() !== '');
 
       const routineData = {
-        coach_id: user.id,
+        coach: user.id,
         title,
         description: description || null,
         type,
@@ -184,7 +184,7 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
 
         // Delete existing exercises
         const existingExercises = await pb.collection('routine_exercises').getFullList({
-          filter: `routine_id="${routineId}"`,
+          filter: `routine="${routineId}"`,
         });
         await Promise.all(existingExercises.map((item: any) => pb.collection('routine_exercises').delete(item.id)));
       } else {
@@ -196,8 +196,8 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
       // Insert exercises if type is exercises
       if (type === 'exercises' && selectedExercises.length > 0) {
         const exercisesToInsert = selectedExercises.map((ex, idx) => ({
-          routine_id: routineId,
-          exercise_id: ex.exerciseId,
+          routine: routineId,
+          exercise: ex.exerciseId,
           order_index: idx,
           repetitions: ex.repetitions
         }));
