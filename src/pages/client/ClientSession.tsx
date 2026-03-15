@@ -129,7 +129,7 @@ const ClientSession = () => {
       
       try {
         const progressRecords = await pb.collection('session_progress').getFullList({
-          filter: `session="${session.id}" && progress_type="classic"`,
+          filter: `session = "${session.id}" && progress_type = "classic"`,
           sort: '-created',
         });
         const data = progressRecords[0] as any;
@@ -225,12 +225,22 @@ const ClientSession = () => {
         await pb.collection("sessions").update(session.id, updateData);
         
         // Supprimer la progression sauvegardée (circuits + classique)
-        const progressRecords = await pb.collection('session_progress').getFullList({
-          filter: `session="${session.id}"`,
-        });
-        await Promise.all(
-          progressRecords.map((record: any) => pb.collection('session_progress').delete(record.id))
-        );
+        try {
+          const progressRecords = await pb.collection('session_progress').getFullList({
+            filter: `session = "${session.id}" && progress_type = "circuit"`,
+            requestKey: null,
+          });
+          await Promise.all(
+            progressRecords.map((record: any) =>
+              pb
+                .collection('session_progress')
+                .delete(record.id, { requestKey: null })
+                .catch(() => {})
+            )
+          );
+        } catch {
+          // pas bloquant si dÃ©jÃ  supprimÃ©
+        }
         console.log("Progression supprimée");
       } else {
         addOfflineData("session_update", {
@@ -293,7 +303,7 @@ const ClientSession = () => {
     
     try {
       const existing = await pb.collection('session_progress').getFullList({
-        filter: `session="${session.id}" && progress_type="classic"`,
+        filter: `session = "${session.id}" && progress_type = "classic"`,
         sort: '-created',
       });
 
