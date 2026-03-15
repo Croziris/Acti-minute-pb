@@ -44,8 +44,9 @@ export const ClientRoutineAssignment: React.FC<ClientRoutineAssignmentProps> = (
       setRoutines(routinesData as unknown as Routine[]);
 
       // Fetch assigned routines for this client
-      const assignmentsData = await pb.collection('client_routines').getFullList({
-        filter: `client = "${clientId}" && assigned_by = "${user.id}" && active = true`,
+      const assignmentsData = await pb.collection('routine_assignments').getFullList({
+        filter: `client = "${clientId}" && active = true`,
+        requestKey: null,
       });
 
       setAssignedRoutineIds(assignmentsData?.map((a: any) => a.routine) || []);
@@ -69,12 +70,17 @@ export const ClientRoutineAssignment: React.FC<ClientRoutineAssignmentProps> = (
 
       if (currentlyAssigned) {
         // Remove assignment
-        const existingAssignments = await pb.collection('client_routines').getFullList({
-          filter: `client = "${clientId}" && routine = "${routineId}" && assigned_by = "${user.id}"`,
+        const existingAssignments = await pb.collection('routine_assignments').getFullList({
+          filter: `client = "${clientId}" && routine = "${routineId}"`,
+          requestKey: null,
         });
         await Promise.all(
           existingAssignments.map((assignment: any) =>
-            pb.collection('client_routines').update(assignment.id, { active: false })
+            pb.collection('routine_assignments').update(
+              assignment.id,
+              { active: false },
+              { requestKey: null }
+            )
           )
         );
 
@@ -82,23 +88,28 @@ export const ClientRoutineAssignment: React.FC<ClientRoutineAssignmentProps> = (
         toast.success('Routine retirée');
       } else {
         // Check if assignment exists but is inactive
-        const existingRecords = await pb.collection('client_routines').getFullList({
-          filter: `client = "${clientId}" && routine = "${routineId}" && assigned_by = "${user.id}"`,
+        const existingRecords = await pb.collection('routine_assignments').getFullList({
+          filter: `client = "${clientId}" && routine = "${routineId}"`,
           sort: '-created',
+          requestKey: null,
         });
         const existing = existingRecords[0];
 
         if (existing) {
           // Reactivate
-          await pb.collection('client_routines').update(existing.id, { active: true });
+          await pb
+            .collection('routine_assignments')
+            .update(existing.id, { active: true }, { requestKey: null });
         } else {
           // Create new assignment
-          await pb.collection('client_routines').create({
-            client: clientId,
-            routine: routineId,
-            assigned_by: user.id,
-            active: true
-          });
+          await pb.collection('routine_assignments').create(
+            {
+              client: clientId,
+              routine: routineId,
+              active: true,
+            },
+            { requestKey: null }
+          );
         }
 
         setAssignedRoutineIds(prev => [...prev, routineId]);
