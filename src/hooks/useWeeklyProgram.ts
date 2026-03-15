@@ -83,8 +83,35 @@ export const useWeeklyProgram = () => {
       }
 
       if (!weekPlanRecord) {
-        setData([]);
-        setWeekPlan(null);
+        try {
+          const directSessions = await pb.collection('sessions').getFullList({
+            filter: `client = "${user.id}"`,
+            sort: 'index_num',
+            expand: 'workout',
+          });
+
+          const mappedSessions: WeeklySession[] = directSessions.map((session: any) => ({
+            id: session.id,
+            index_num: typeof session.index_num === 'number' ? session.index_num : 0,
+            statut: session.statut as WeeklySession['statut'],
+            workout: session.expand?.workout
+              ? {
+                  id: session.expand.workout.id,
+                  titre: session.expand.workout.titre,
+                  duree_estimee: session.expand.workout.duree_estimee ?? undefined,
+                }
+              : undefined,
+            date_demarree: session.date_demarree ?? undefined,
+            date_terminee: session.date_terminee ?? undefined,
+          }));
+
+          setData(mappedSessions);
+          setWeekPlan(null);
+        } catch {
+          setData([]);
+          setWeekPlan(null);
+        }
+
         setLoading(false);
         return;
       }

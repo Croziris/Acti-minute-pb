@@ -29,6 +29,7 @@ export const useHabits = () => {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const normalizeDate = (value: string): string => value.split('T')[0].split(' ')[0];
 
   const fetchHabits = useCallback(async () => {
     if (!user?.id) {
@@ -52,11 +53,10 @@ export const useHabits = () => {
         return;
       }
 
-      const today = new Date().toISOString().split('T')[0];
-      const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
-
       const allChecks = await pb.collection('habit_checks').getFullList({
-        filter: `client = "${user.id}" && date >= "${weekAgo}" && date <= "${today}"`,
+        filter: `client = "${user.id}"`,
+        sort: '-date',
+        requestKey: null,
       });
 
       const mappedHabits: Habit[] = assignments.map((assignment: any) => {
@@ -77,7 +77,7 @@ export const useHabits = () => {
               id: check.id,
               habit_id: check.habit,
               client_id: check.client,
-              date: check.date,
+              date: typeof check.date === 'string' ? normalizeDate(check.date) : '',
               checked: check.checked,
             })),
         };
@@ -104,28 +104,33 @@ export const useHabits = () => {
     setError(null);
 
     try {
-      let existing: any = null;
-      try {
-        existing = await pb.collection('habit_checks').getFirstListItem(
-          `client = "${user.id}" && habit = "${habitId}" && date = "${date}"`,
-          { requestKey: null }
-        );
-      } catch (e: any) {
-        if (e?.status !== 404) throw e;
-        existing = null;
-      }
+      const allForHabit = await pb.collection('habit_checks').getFullList({
+        filter: `client = "${user.id}" && habit = "${habitId}"`,
+        requestKey: null,
+      });
+
+      const existing =
+        allForHabit.find((check: any) => normalizeDate(check?.date ?? '') === normalizeDate(date)) ??
+        null;
 
       if (existing) {
-        await pb.collection('habit_checks').update(existing.id, {
-          checked: !existing.checked,
-        });
+        await pb.collection('habit_checks').update(
+          existing.id,
+          {
+            checked: !existing.checked,
+          },
+          { requestKey: null }
+        );
       } else {
-        await pb.collection('habit_checks').create({
-          client: user.id,
-          habit: habitId,
-          date,
-          checked: true,
-        });
+        await pb.collection('habit_checks').create(
+          {
+            client: user.id,
+            habit: habitId,
+            date,
+            checked: true,
+          },
+          { requestKey: null }
+        );
       }
 
       await fetchHabits();

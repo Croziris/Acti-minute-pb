@@ -36,6 +36,7 @@ export const useRoutines = () => {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const normalizeDate = (value: string): string => value.split('T')[0].split(' ')[0];
 
   const fetchRoutines = useCallback(async () => {
     if (!user?.id) {
@@ -114,7 +115,7 @@ export const useRoutines = () => {
           tracking: trackingData
             .filter((tracking: any) => tracking.routine === routineId)
             .map((tracking: any) => ({
-              date: tracking.date,
+              date: typeof tracking.date === 'string' ? normalizeDate(tracking.date) : '',
               completed: Boolean(tracking.completed),
             })),
         };
@@ -141,16 +142,15 @@ export const useRoutines = () => {
     setError(null);
 
     try {
-      let existing: any = null;
-      try {
-        existing = await pb.collection('routine_tracking').getFirstListItem(
-          `client = "${user.id}" && routine = "${routineId}" && date = "${date}"`,
-          { requestKey: null }
-        );
-      } catch (e: any) {
-        if (e?.status !== 404) throw e;
-        existing = null;
-      }
+      const allForRoutine = await pb.collection('routine_tracking').getFullList({
+        filter: `client = "${user.id}" && routine = "${routineId}"`,
+        requestKey: null,
+      });
+
+      const existing =
+        allForRoutine.find(
+          (tracking: any) => normalizeDate(tracking?.date ?? '') === normalizeDate(date)
+        ) ?? null;
 
       if (existing) {
         await pb.collection('routine_tracking').update(

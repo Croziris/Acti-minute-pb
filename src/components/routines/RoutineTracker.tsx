@@ -62,17 +62,22 @@ export const RoutineTracker: React.FC = () => {
 
   const weekDates = getCurrentWeekDates();
   const today = new Date().toISOString().split('T')[0];
+  const normalizeDate = (value: string): string => value.split('T')[0].split(' ')[0];
 
   const getRoutineScore = (routine: Routine): number => {
     return (
       routine.tracking?.filter(
-        (track) => weekDates.includes(track.date) && track.completed
+        (track) => weekDates.includes(normalizeDate(track.date)) && track.completed
       ).length || 0
     );
   };
 
   const isDateChecked = (routine: Routine, date: string): boolean => {
-    return routine.tracking?.some(track => track.date === date && track.completed) || false;
+    return (
+      routine.tracking?.some(
+        (track) => normalizeDate(track.date) === normalizeDate(date) && track.completed
+      ) || false
+    );
   };
 
   const isDateInFuture = (date: string): boolean => {
