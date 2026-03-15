@@ -29,7 +29,7 @@ const CoachDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{loading ? '...' : clients.length}</div>
+              <div className="text-2xl font-bold">{loading ?'...' : clients.length}</div>
               <p className="text-xs text-muted-foreground">
                 Clients avec programmes actifs
               </p>
@@ -42,7 +42,7 @@ const CoachDashboard = () => {
               <Dumbbell className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{loading ? '...' : clients.length}</div>
+              <div className="text-2xl font-bold">{loading ?'...' : clients.length}</div>
               <p className="text-xs text-muted-foreground">
                 Programmes en cours
               </p>

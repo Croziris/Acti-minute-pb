@@ -129,7 +129,7 @@ export const CombinedWorkoutsBuilder: React.FC<CombinedWorkoutsBuilderProps> = (
                     <div className="flex flex-col">
                       <span className="font-medium">{workout.titre}</span>
                       <span className="text-xs text-muted-foreground">
-                        {getSessionTypeLabel(workout.session_type)} • {workout.workout_type === 'circuit' ? 'Circuit' : 'Classique'}
+                        {getSessionTypeLabel(workout.session_type)} • {workout.workout_type === 'circuit' ?'Circuit' : 'Classique'}
                         {workout.duree_estimee && ` • ${workout.duree_estimee}min`}
                       </span>
                     </div>
@@ -164,8 +164,8 @@ export const CombinedWorkoutsBuilder: React.FC<CombinedWorkoutsBuilderProps> = (
             {selectedWorkouts.map((workout, index) => (
               <Card key={`${workout.id}-${index}`} className="border-l-4" style={{
                 borderLeftColor: 
-                  workout.session_type === 'warmup' ? '#f97316' :
-                  workout.session_type === 'main' ? '#3b82f6' :
+                  workout.session_type === 'warmup' ?'#f97316' :
+                  workout.session_type === 'main' ?'#3b82f6' :
                   '#10b981'
               }}>
                 <CardContent className="p-4">
@@ -202,7 +202,7 @@ export const CombinedWorkoutsBuilder: React.FC<CombinedWorkoutsBuilderProps> = (
                       <div className="text-xs text-muted-foreground">
                         {getSessionTypeLabel(workout.session_type)}
                         {' • '}
-                        {workout.workout_type === 'circuit' ? 'Circuit' : 'Classique'}
+                        {workout.workout_type === 'circuit' ?'Circuit' : 'Classique'}
                         {workout.duree_estimee && ` • ${workout.duree_estimee}min`}
                       </div>
                     </div>

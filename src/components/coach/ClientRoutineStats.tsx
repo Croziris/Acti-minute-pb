@@ -43,7 +43,7 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
     const today = new Date();
     const currentDay = today.getDay();
     const monday = new Date(today);
-    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+    monday.setDate(today.getDate() - (currentDay === 0 ?6 : currentDay - 1));
     
     const dates = [];
     for (let i = 0; i < 7; i++) {
@@ -80,20 +80,16 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
       });
 
       // Fetch tracking data
-      const trackingData = await pb.collection('session_progress').getFullList({
-        filter: `client="${clientId}"`,
+      const trackingData = await pb.collection('routine_tracking').getFullList({
+        filter: `client = "${clientId}"`,
       });
 
       // Map tracking to routines
       const trackingMap: Record<string, any[]> = {};
       trackingData?.forEach((track: any) => {
         const routineId = track.routine;
-        const date = typeof track.date === 'string'
-          ? track.date
-          : (typeof track.completed_at === 'string' ? track.completed_at.split('T')[0] : null);
-        const completed = typeof track.completed === 'boolean'
-          ? track.completed
-          : track.status === 'completed';
+        const date = track.date?.split('T')[0] ?? null;
+        const completed = track.completed === true;
 
         if (!routineId || !date || !routineIds.includes(routineId) || !dates.includes(date)) {
           return;
@@ -159,17 +155,13 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
 
   const fetchRoutineHistory = async (routineId: string) => {
     try {
-      const data = await pb.collection('session_progress').getFullList({
-        filter: `client="${clientId}"`,
-        sort: '-created',
+      const data = await pb.collection('routine_tracking').getFullList({
+        filter: `client = "${clientId}" && routine = "${routineId}" && completed = true`,
+        sort: '-date',
       });
 
       const dates = data
-        ?.filter((item: any) => {
-          const completed = typeof item.completed === 'boolean' ? item.completed : item.status === 'completed';
-          return item.routine === routineId && completed;
-        })
-        .map((item: any) => new Date(item.date || item.completed_at))
+        ?.map((item: any) => new Date(item.date))
         .filter((date: Date) => !Number.isNaN(date.getTime())) || [];
       setHistoryDates(dates);
       setSelectedRoutineHistory(routineId);
@@ -303,7 +295,7 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
                                 }}
                               />
                               <p className="text-sm text-muted-foreground mt-4">
-                                Total : {historyDates.length} jour{historyDates.length > 1 ? 's' : ''} validé{historyDates.length > 1 ? 's' : ''}
+                                Total : {historyDates.length} jour{historyDates.length > 1 ?'s' : ''} validé{historyDates.length > 1 ?'s' : ''}
                               </p>
                             </div>
                           </DialogContent>
@@ -312,7 +304,7 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
                     </td>
                     {weekDates.map((date, index) => (
                       <td key={index} className="text-center py-3 px-2">
-                        {isCompleted(routine, date) ? (
+                        {isCompleted(routine, date) ?(
                           <CheckCircle2 className="h-6 w-6 text-success inline-block" />
                         ) : (
                           <Circle className="h-6 w-6 text-muted-foreground/30 inline-block" />

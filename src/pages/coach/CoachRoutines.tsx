@@ -64,7 +64,7 @@ const CoachRoutines = () => {
 
       const formattedRoutines: Routine[] = routinesData?.map((routine: any) => ({
         ...routine,
-        tips: Array.isArray(routine.tips) ? routine.tips as string[] : [],
+        tips: Array.isArray(routine.tips) ?routine.tips as string[] : [],
         exerciseCount: exerciseCounts[routine.id] || 0
       })) || [];
 
@@ -119,7 +119,7 @@ const CoachRoutines = () => {
           </div>
         </div>
 
-        {loading ? (
+        {loading ?(
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, i) => (
               <Card key={i} className="animate-pulse">
@@ -134,7 +134,7 @@ const CoachRoutines = () => {
               </Card>
             ))}
           </div>
-        ) : routines.length === 0 ? (
+        ) : routines.length === 0 ?(
           <Card>
             <CardContent className="p-12 text-center">
               <h3 className="font-medium mb-2">Aucune routine créée</h3>
@@ -156,7 +156,7 @@ const CoachRoutines = () => {
                     <div className="flex-1">
                       <CardTitle className="text-lg">{routine.title}</CardTitle>
                       <Badge variant="secondary" className="mt-2">
-                        {routine.type === 'exercises' ? 'Exercices' : 'Vidéo'}
+                        {routine.type === 'exercises' ?'Exercices' : 'Vidéo'}
                       </Badge>
                     </div>
                   </div>

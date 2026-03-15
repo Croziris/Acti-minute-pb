@@ -68,22 +68,22 @@ const CoachClient = () => {
           <CardHeader>
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={client.avatar_url} />
+                <AvatarImage src={client.avatar} />
                 <AvatarFallback>
-                  {client.handle?.slice(0, 2).toUpperCase()}
+                  {(client.name || '?').slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-2xl">{client.handle}</CardTitle>
+                <CardTitle className="text-2xl">{client.name}</CardTitle>
                 <CardDescription>
-                  {program ? `Programme: ${program.titre}` : 'Aucun programme actif'}
+                  {program ?`Programme: ${program.titre}` : 'Aucun programme actif'}
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
         </Card>
 
-        {program ? (
+        {program ?(
           <Tabs defaultValue="workouts" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="workouts">Séances</TabsTrigger>

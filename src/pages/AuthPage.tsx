@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,7 +64,7 @@ const AuthPage = () => {
     } else {
       toast({
         title: "Connexion réussie",
-        description: `Bienvenue ${selectedRole === 'sportif' ? 'Sportif⸱ve' : 'Coach'} !`,
+        description: `Bienvenue ${selectedRole === 'sportif' ?'Sportif⸱ve' : 'Coach'} !`,
       });
     }
     setIsSubmitting(false);
@@ -100,17 +100,17 @@ const AuthPage = () => {
         <Card className="shadow-xl border-0">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
-              {!selectedRole ? 'Qui êtes-vous ?' : `Connexion ${selectedRole === 'sportif' ? 'Sportif⸱ve' : 'Coach'}`}
+              {!selectedRole ?'Qui êtes-vous ?' : `Connexion ${selectedRole === 'sportif' ?'Sportif⸱ve' : 'Coach'}`}
             </CardTitle>
             <CardDescription>
               {!selectedRole
-                ? 'Sélectionnez votre profil pour vous connecter'
+                ?'Sélectionnez votre profil pour vous connecter'
                 : 'Saisissez vos identifiants pour accéder à votre espace'
               }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {!selectedRole ? (
+            {!selectedRole ?(
               <div className="space-y-4">
                 <Button
                   onClick={() => handleRoleSelect('sportif')}
@@ -184,7 +184,7 @@ const AuthPage = () => {
                     className="flex-1 bg-gradient-primary hover:bg-gradient-hero"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Connexion...' : 'Se connecter'}
+                    {isSubmitting ?'Connexion...' : 'Se connecter'}
                   </Button>
                 </div>
               </form>

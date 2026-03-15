@@ -64,10 +64,10 @@ export const SessionTimer: React.FC<SessionTimerProps> = ({
       </div>
       
       <div className="flex items-center space-x-2">
-        {!isRunning ? (
+        {!isRunning ?(
           <Button onClick={handleStart} size="sm" variant="default">
             <Play className="h-4 w-4 mr-1" />
-            {time === 0 ? 'Démarrer' : 'Reprendre'}
+            {time === 0 ?'Démarrer' : 'Reprendre'}
           </Button>
         ) : (
           <Button onClick={handlePause} size="sm" variant="outline">

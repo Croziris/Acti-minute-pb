@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { RecordModel } from 'pocketbase';
 import pb from '@/lib/pocketbase';
 
@@ -35,9 +35,9 @@ const mapRecordToUser = (record: RecordModel | null): AppUser | null => {
   return {
     id: record.id,
     role,
-    email: typeof record.email === 'string' ? record.email : '',
-    name: typeof record.name === 'string' && record.name.length > 0 ? record.name : undefined,
-    avatar: typeof record.avatar === 'string' && record.avatar.length > 0 ? record.avatar : undefined,
+    email: typeof record.email === 'string' ?record.email : '',
+    name: typeof record.name === 'string' && record.name.length > 0 ?record.name : undefined,
+    avatar: typeof record.avatar === 'string' && record.avatar.length > 0 ?record.avatar : undefined,
   };
 };
 

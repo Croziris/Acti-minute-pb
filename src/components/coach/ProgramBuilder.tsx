@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { pb } from '@/lib/pocketbase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -88,8 +88,8 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
           const normalizedSessions: Session[] = await Promise.all(
             sessionsData.map(async (s: any) => {
               const workoutIds = Array.isArray(s.workout_ids)
-                ? s.workout_ids
-                : (s.workout ? [s.workout] : []);
+                ?s.workout_ids
+                : (s.workout ?[s.workout] : []);
 
               if (workoutIds.length > 1) {
                 const workouts = await Promise.all(
@@ -111,7 +111,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                   })),
                   workout: {
                     titre: workouts.map((w: any) => w.titre).join(' + '),
-                    description: `${workouts.length} sÃ©ances combinÃ©es`,
+                    description: `${workouts.length} séances combinées`,
                     duree_estimee: workouts.reduce((sum: number, w: any) => sum + (w.duree_estimee || 0), 0),
                     workout_type: 'combined',
                     circuit_rounds: null,
@@ -142,7 +142,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                 statut: s.statut,
                 isCombined: false,
                 workout: {
-                  titre: 'SÃ©ance sans workout',
+                  titre: 'Séance sans workout',
                   description: null,
                   duree_estimee: null,
                   workout_type: 'classic',
@@ -162,8 +162,8 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
         })
       );
 
-      // Trier les semaines : semaine actuelle en premier, puis futures, puis passÃ©es
-      // Normaliser la date actuelle Ã  minuit pour comparer correctement avec les dates de dÃ©but/fin
+      // Trier les semaines : semaine actuelle en premier, puis futures, puis passées
+      // Normaliser la date actuelle Ã  minuit pour comparer correctement avec les dates de début/fin
       const now = new Date();
       now.setHours(0, 0, 0, 0);
       const sorted = organized.sort((a, b) => {
@@ -206,8 +206,8 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
       await pb.collection('sessions').delete(sessionToDelete);
 
       toast({
-        title: 'SÃ©ance supprimÃ©e',
-        description: 'La sÃ©ance a Ã©tÃ© retirÃ©e du programme'
+        title: 'Séance supprimée',
+        description: 'La séance a été retirée du programme'
       });
 
       fetchWeekPlans();
@@ -215,7 +215,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
       console.error('Error deleting session:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer la sÃ©ance',
+        description: 'Impossible de supprimer la séance',
         variant: 'destructive',
       });
     } finally {
@@ -226,10 +226,10 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
 
   const getStatusBadge = (statut: string) => {
     const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      planned: { label: 'Ã€ faire', variant: 'outline' },
+      planned: { label: 'À faire', variant: 'outline' },
       in_progress: { label: 'En cours', variant: 'default' },
-      completed: { label: 'TerminÃ©e', variant: 'secondary' },
-      skipped: { label: 'SautÃ©e', variant: 'destructive' }
+      completed: { label: 'Terminée', variant: 'secondary' },
+      skipped: { label: 'Sautée', variant: 'destructive' }
     };
 
     const config = statusConfig[statut] || statusConfig.planned;
@@ -249,28 +249,28 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Programme d'entraÃ®nement</h2>
+          <h2 className="text-2xl font-bold">Programme d'entraînement</h2>
           <p className="text-muted-foreground">
-            Assignez des sÃ©ances au client par semaine
+            Assignez des séances au client par semaine
           </p>
         </div>
         <Button onClick={() => setAssignDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Ajouter une sÃ©ance
+          Ajouter une séance
         </Button>
       </div>
 
-      {weekPlans.length === 0 ? (
+      {weekPlans.length === 0 ?(
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium mb-2">Aucune sÃ©ance planifiÃ©e</p>
+            <p className="text-lg font-medium mb-2">Aucune séance planifiée</p>
             <p className="text-muted-foreground text-center mb-4">
-              Commencez par ajouter des sÃ©ances au programme de votre client
+              Commencez par ajouter des séances au programme de votre client
             </p>
             <Button onClick={() => setAssignDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter une sÃ©ance
+              Ajouter une séance
             </Button>
           </CardContent>
         </Card>
@@ -286,7 +286,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
             const isCurrentWeek = now >= weekStart && now <= weekEnd;
             
             return (
-              <Card key={weekPlan.id} className={isCurrentWeek ? 'border-primary border-2' : ''}>
+              <Card key={weekPlan.id} className={isCurrentWeek ?'border-primary border-2' : ''}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -299,15 +299,15 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                         {format(parseISO(weekPlan.end_date), 'dd MMM yyyy', { locale: fr })}
                       </CardTitle>
                       <CardDescription>
-                        {weekPlan.sessions.length} sÃ©ance{weekPlan.sessions.length > 1 ? 's' : ''} planifiÃ©e{weekPlan.sessions.length > 1 ? 's' : ''}
+                        {weekPlan.sessions.length} séance{weekPlan.sessions.length > 1 ?'s' : ''} planifiée{weekPlan.sessions.length > 1 ?'s' : ''}
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
               <CardContent>
-                {weekPlan.sessions.length === 0 ? (
+                {weekPlan.sessions.length === 0 ?(
                   <p className="text-muted-foreground text-center py-4">
-                    Aucune sÃ©ance pour cette semaine
+                    Aucune séance pour cette semaine
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -315,7 +315,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                       <Card 
                         key={session.id} 
                         className={`border-l-4 cursor-pointer hover:shadow-md transition-shadow ${
-                          session.isCombined ? 'border-l-purple-500' : 'border-l-primary'
+                          session.isCombined ?'border-l-purple-500' : 'border-l-primary'
                         }`}
                         onClick={() => handleSessionClick(session)}
                       >
@@ -323,12 +323,12 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <Badge variant="default">SÃ©ance {session.index_num}</Badge>
+                                <Badge variant="default">Séance {session.index_num}</Badge>
                                 {getStatusBadge(session.statut)}
                                 {session.isCombined && (
                                   <Badge variant="secondary" className="gap-1">
                                     <Layers className="h-3 w-3" />
-                                    CombinÃ©e
+                                    Combinée
                                   </Badge>
                                 )}
                                 {!session.isCombined && session.workout.workout_type === 'circuit' && (
@@ -336,13 +336,13 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                                 )}
                                 <Badge variant="outline" className="gap-1">
                                   <Eye className="h-3 w-3" />
-                                  Voir dÃ©tails
+                                  Voir détails
                                 </Badge>
                               </div>
                               
-                              {session.isCombined && session.workouts ? (
+                              {session.isCombined && session.workouts ?(
                                 <div className="space-y-2">
-                                  <CardTitle className="text-lg mb-2">Session combinÃ©e</CardTitle>
+                                  <CardTitle className="text-lg mb-2">Session combinée</CardTitle>
                                   {session.workouts.map((w, idx) => (
                                     <div key={w.id} className="flex items-center gap-2 text-sm">
                                       <Badge variant="outline" className="text-xs">
@@ -393,7 +393,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                             {!session.isCombined && session.workout.workout_type === 'circuit' && session.workout.circuit_rounds && (
                               <div className="flex items-center gap-1">
                                 <Dumbbell className="h-4 w-4" />
-                                <span>{session.workout.circuit_rounds} tour{session.workout.circuit_rounds > 1 ? 's' : ''}</span>
+                                <span>{session.workout.circuit_rounds} tour{session.workout.circuit_rounds > 1 ?'s' : ''}</span>
                               </div>
                             )}
                           </div>
@@ -428,9 +428,9 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cette sÃ©ance ?</AlertDialogTitle>
+            <AlertDialogTitle>Supprimer cette séance ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irrÃ©versible. La sÃ©ance sera retirÃ©e du programme.
+              Cette action est irréversible. La séance sera retirée du programme.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

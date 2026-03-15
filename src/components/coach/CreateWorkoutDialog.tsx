@@ -45,7 +45,7 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
 
   const handleNombreCircuitsChange = (value: string) => {
     setNombreCircuits(value);
-    const num = value === 'custom' ? 3 : parseInt(value);
+    const num = value === 'custom' ?3 : parseInt(value);
     const newConfigs = Array.from({ length: num }, (_, i) =>
       circuitConfigs[i] || { rounds: '3', rest: '60' }
     );
@@ -93,13 +93,13 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
       const workoutPayload = {
         titre: titre.trim(),
         description: description.trim() || null,
-        duree_estimee: dureeEstimee ? parseInt(dureeEstimee) : null,
+        duree_estimee: dureeEstimee ?parseInt(dureeEstimee) : null,
         workout_type: workoutType,
         session_type: sessionType,
-        circuit_configs: workoutType === 'circuit' ? configs : null,
+        circuit_configs: workoutType === 'circuit' ?configs : null,
         // Garder la compatibilité avec l'ancien système
-        circuit_rounds: workoutType === 'circuit' ? configs[0].rounds : null,
-        temps_repos_tours_seconds: workoutType === 'circuit' ? configs[0].rest : null,
+        circuit_rounds: workoutType === 'circuit' ?configs[0].rounds : null,
+        temps_repos_tours_seconds: workoutType === 'circuit' ?configs[0].rest : null,
         is_template: true,
         created_by: pb.authStore.record?.id ?? ''
       };
@@ -339,7 +339,7 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
               Annuler
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Création...' : 'Créer la séance'}
+              {loading ?'Création...' : 'Créer la séance'}
             </Button>
           </div>
         </form>

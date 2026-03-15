@@ -111,7 +111,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     setShowFeedbackModal(false);
   };
 
-  const isShort = exercise.youtube_url ? isYouTubeShort(exercise.youtube_url) : false;
+  const isShort = exercise.youtube_url ?isYouTubeShort(exercise.youtube_url) : false;
 
   return (
     <Card className="w-full">
@@ -162,11 +162,11 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
       <CardContent className="space-y-4">
         {/* Video Player */}
         {showVideo && exercise.video_id && (
-          <div className={isShort ? "flex justify-center" : "aspect-video w-full"}>
+          <div className={isShort ?"flex justify-center" : "aspect-video w-full"}>
             <iframe
               src={getYouTubeEmbedUrl(exercise.video_id, isShort)}
               title={exercise.libelle}
-              className={isShort ? "w-full max-w-[360px] h-[640px] rounded-lg" : "w-full h-full rounded-lg"}
+              className={isShort ?"w-full max-w-[360px] h-[640px] rounded-lg" : "w-full h-full rounded-lg"}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
@@ -306,7 +306,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(rating => (
                 <Button
                   key={rating}
-                  variant={currentRPE === rating ? "default" : "outline"}
+                  variant={currentRPE === rating ?"default" : "outline"}
                   size="sm"
                   onClick={() => setCurrentRPE(rating)}
                   className="w-8 h-8 p-0"
@@ -322,7 +322,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             className="w-full"
             disabled={currentSet > totalSets}
           >
-            {currentSet < totalSets ? `Valider série ${currentSet}` : 'Terminer exercice'}
+            {currentSet < totalSets ?`Valider série ${currentSet}` : 'Terminer exercice'}
           </Button>
         </div>
 
@@ -350,7 +350,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(rating => (
                   <Button
                     key={rating}
-                    variant={feedback.difficulte === rating ? "default" : "outline"}
+                    variant={feedback.difficulte === rating ?"default" : "outline"}
                     size="sm"
                     onClick={() => setFeedback(prev => ({ ...prev, difficulte: rating }))}
                     className="w-8 h-8 p-0"
@@ -367,12 +367,12 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(rating => (
                   <Button
                     key={rating}
-                    variant={feedback.plaisir === rating ? "default" : "outline"}
+                    variant={feedback.plaisir === rating ?"default" : "outline"}
                     size="sm"
                     onClick={() => setFeedback(prev => ({ ...prev, plaisir: rating }))}
                     className="w-8 h-8 p-0"
                   >
-                    <Star className="h-3 w-3" fill={feedback.plaisir >= rating ? "currentColor" : "none"} />
+                    <Star className="h-3 w-3" fill={feedback.plaisir >= rating ?"currentColor" : "none"} />
                   </Button>
                 ))}
               </div>

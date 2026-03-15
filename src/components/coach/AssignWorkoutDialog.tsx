@@ -250,7 +250,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
 
       toast({
         title: "Session combinée créée",
-        description: `${selectedWorkouts.length} séance${selectedWorkouts.length > 1 ? 's' : ''} combinée${selectedWorkouts.length > 1 ? 's' : ''} avec succès`,
+        description: `${selectedWorkouts.length} séance${selectedWorkouts.length > 1 ?'s' : ''} combinée${selectedWorkouts.length > 1 ?'s' : ''} avec succès`,
       });
 
       onOpenChange(false);
@@ -329,7 +329,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
               <div>
                 <Label>Sélectionner une séance</Label>
                 <ScrollArea className="h-[500px] mt-2 pr-4">
-                  {templates.length === 0 ? (
+                  {templates.length === 0 ?(
                     <div className="text-center py-8 text-muted-foreground">
                       <p>Aucune séance disponible</p>
                       <p className="text-sm mt-2">Créez d'abord des séances dans "Mes Séances"</p>
@@ -341,7 +341,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
                           key={workout.id}
                           className={`cursor-pointer transition-all ${
                             selectedTemplate === workout.id
-                              ? 'ring-2 ring-primary'
+                              ?'ring-2 ring-primary'
                               : 'hover:shadow-md'
                           }`}
                           onClick={() => setSelectedTemplate(workout.id)}
@@ -354,8 +354,8 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
                                 )}
                                 <CardTitle className="text-base">{workout.titre}</CardTitle>
                               </div>
-                              <Badge variant={workout.workout_type === 'circuit' ? 'default' : 'secondary'}>
-                                {workout.workout_type === 'circuit' ? 'Circuit' : 'Classique'}
+                              <Badge variant={workout.workout_type === 'circuit' ?'default' : 'secondary'}>
+                                {workout.workout_type === 'circuit' ?'Circuit' : 'Classique'}
                               </Badge>
                             </div>
                             {workout.description && (
@@ -374,11 +374,11 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
                               )}
                               <div className="flex items-center gap-1">
                                 <Dumbbell className="h-4 w-4" />
-                                <span>{workout.exercise_count} exercice{workout.exercise_count > 1 ? 's' : ''}</span>
+                                <span>{workout.exercise_count} exercice{workout.exercise_count > 1 ?'s' : ''}</span>
                               </div>
                               {workout.workout_type === 'circuit' && workout.circuit_rounds && (
                                 <Badge variant="outline">
-                                  {workout.circuit_rounds} tour{workout.circuit_rounds > 1 ? 's' : ''}
+                                  {workout.circuit_rounds} tour{workout.circuit_rounds > 1 ?'s' : ''}
                                 </Badge>
                               )}
                             </div>
@@ -398,7 +398,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
                   onClick={handleAssignSingle}
                   disabled={!selectedTemplate || loading}
                 >
-                  {loading ? 'Assignation...' : 'Assigner la séance'}
+                  {loading ?'Assignation...' : 'Assigner la séance'}
                 </Button>
               </div>
             </TabsContent>
@@ -420,7 +420,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
                   onClick={handleAssignCombined} 
                   disabled={selectedWorkouts.length === 0 || loading}
                 >
-                  {loading ? 'Création...' : `Créer la session combinée (${selectedWorkouts.length})`}
+                  {loading ?'Création...' : `Créer la session combinée (${selectedWorkouts.length})`}
                 </Button>
               </div>
             </TabsContent>

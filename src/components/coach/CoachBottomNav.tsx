@@ -22,7 +22,7 @@ export const CoachBottomNav = () => {
       <div className="flex justify-around items-center h-16">
         {navItems.map((item) => {
           const isActive = item.exactMatch 
-            ? location.pathname === item.to
+            ?location.pathname === item.to
             : location.pathname.startsWith(item.to);
           
           return (
@@ -32,7 +32,7 @@ export const CoachBottomNav = () => {
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors",
                 isActive 
-                  ? "text-primary" 
+                  ?"text-primary" 
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -48,7 +48,7 @@ export const CoachBottomNav = () => {
           className={cn(
             "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors",
             isMoreActive 
-              ? "text-primary" 
+              ?"text-primary" 
               : "text-muted-foreground hover:text-foreground"
           )}
         >

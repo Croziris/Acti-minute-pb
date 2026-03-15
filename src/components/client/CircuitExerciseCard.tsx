@@ -47,7 +47,7 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
   const [showVideo, setShowVideo] = useState(false);
   const [repsCompleted, setRepsCompleted] = useState<number>(we.reps || 0);
   const [charge, setCharge] = useState<number>(we.charge_cible || 0);
-  const isShort = we.exercise?.youtube_url ? isYouTubeShort(we.exercise.youtube_url) : false;
+  const isShort = we.exercise?.youtube_url ?isYouTubeShort(we.exercise.youtube_url) : false;
 
   // Notifier le parent à chaque changement
   React.useEffect(() => {
@@ -106,11 +106,11 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
       <CardContent className="space-y-4">
         {/* Video Player */}
         {showVideo && we.exercise.video_id && (
-          <div className={isShort ? "flex justify-center" : "aspect-video w-full"}>
+          <div className={isShort ?"flex justify-center" : "aspect-video w-full"}>
             <iframe
               src={getYouTubeEmbedUrl(we.exercise.video_id, isShort)}
               title={we.exercise.libelle}
-              className={isShort ? "w-full max-w-[360px] h-[640px] rounded-lg" : "w-full h-full rounded-lg"}
+              className={isShort ?"w-full max-w-[360px] h-[640px] rounded-lg" : "w-full h-full rounded-lg"}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />

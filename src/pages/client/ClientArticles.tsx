@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { useQuery } from '@tanstack/react-query';
 import { pb } from '@/lib/pocketbase';
@@ -25,15 +25,15 @@ const ClientArticles = () => {
         <div>
           <h1 className="text-2xl font-bold">Articles</h1>
           <p className="text-muted-foreground">
-            DÃ©couvrez nos articles et conseils
+            Découvrez nos articles et conseils
           </p>
         </div>
 
-        {isLoading ? (
+        {isLoading ?(
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : !articles || articles.length === 0 ? (
+        ) : !articles || articles.length === 0 ?(
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
@@ -62,12 +62,12 @@ const ClientArticles = () => {
                       <Calendar className="h-4 w-4" />
                       <span>
                         {article.published_at 
-                          ? format(new Date(article.published_at), 'dd MMMM yyyy', { locale: fr })
+                          ?format(new Date(article.published_at), 'dd MMMM yyyy', { locale: fr })
                           : 'Date inconnue'
                         }
                       </span>
                       {article.author && (
-                        <span>â€¢ par {article.author}</span>
+                        <span>• par {article.author}</span>
                       )}
                     </div>
                     {article.categories && article.categories.length > 0 && (

@@ -152,7 +152,7 @@ export const EditExerciseDialog: React.FC<Props> = ({
               {CATEGORIES.map(cat => (
                 <Badge
                   key={cat}
-                  variant={formData.categories.includes(cat) ? "default" : "outline"}
+                  variant={formData.categories.includes(cat) ?"default" : "outline"}
                   className="cursor-pointer"
                   onClick={() => toggleArrayItem(
                     formData.categories, 
@@ -172,7 +172,7 @@ export const EditExerciseDialog: React.FC<Props> = ({
               {GROUPES.map(groupe => (
                 <Badge
                   key={groupe}
-                  variant={formData.groupes.includes(groupe) ? "default" : "outline"}
+                  variant={formData.groupes.includes(groupe) ?"default" : "outline"}
                   className="cursor-pointer"
                   onClick={() => toggleArrayItem(
                     formData.groupes, 
@@ -210,7 +210,7 @@ export const EditExerciseDialog: React.FC<Props> = ({
                 {MATERIEL.map(mat => (
                   <Badge
                     key={mat}
-                    variant={formData.materiel.includes(mat) ? "default" : "outline"}
+                    variant={formData.materiel.includes(mat) ?"default" : "outline"}
                     className="cursor-pointer text-xs"
                     onClick={() => toggleArrayItem(
                       formData.materiel, 
@@ -230,7 +230,7 @@ export const EditExerciseDialog: React.FC<Props> = ({
               Annuler
             </Button>
             <Button onClick={handleSave} disabled={!formData.libelle || saving}>
-              {saving ? 'Enregistrement...' : 'Enregistrer'}
+              {saving ?'Enregistrement...' : 'Enregistrer'}
             </Button>
           </div>
         </div>

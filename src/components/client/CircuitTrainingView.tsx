@@ -139,7 +139,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
           
           toast({
             title: "🔄 Progression restaurée",
-            description: `Reprise au Circuit ${activeCircuitIndex + 1}, ${totalRestored} tour${totalRestored > 1 ? 's' : ''} effectué${totalRestored > 1 ? 's' : ''}`,
+            description: `Reprise au Circuit ${activeCircuitIndex + 1}, ${totalRestored} tour${totalRestored > 1 ?'s' : ''} effectué${totalRestored > 1 ?'s' : ''}`,
           });
         } else {
           console.log("ℹ️ Aucune progression sauvegardée");
@@ -279,7 +279,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       .every(num => {
         const circuitConfig = getCircuitConfig(num);
         const completed = num === currentCircuitNumber 
-          ? currentRoundInCircuit 
+          ?currentRoundInCircuit 
           : (newCompletedRounds[num] || 0);
         
         console.log(`Circuit ${num}: ${completed}/${circuitConfig.rounds} tours`);
@@ -499,7 +499,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
           {/* Circuit Exercises */}
           <div className="space-y-3">
             <h3 className="text-base font-semibold">
-              {nombreCircuits > 1 ? `Exercices du circuit ${currentCircuitNumber}` : 'Exercices du circuit'}
+              {nombreCircuits > 1 ?`Exercices du circuit ${currentCircuitNumber}` : 'Exercices du circuit'}
             </h3>
             {currentCircuitExercises.map((we, idx) => (
               <CircuitExerciseCard 
@@ -531,11 +531,11 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
                     {currentRoundInCircuit <= currentCircuitConfig.rounds && " - En cours"}
                   </span>
                   
-                  {restingCircuit === null && currentRoundInCircuit <= currentCircuitConfig.rounds ? (
+                  {restingCircuit === null && currentRoundInCircuit <= currentCircuitConfig.rounds ?(
                     <span className="text-sm opacity-90 leading-tight">
                       Appuyer pour finir le tour
                     </span>
-                  ) : restingCircuit !== null ? (
+                  ) : restingCircuit !== null ?(
                     <span className="text-sm opacity-75 leading-tight">
                       Repos en cours...
                     </span>

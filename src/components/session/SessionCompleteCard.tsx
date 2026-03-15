@@ -62,7 +62,7 @@ export const SessionCompleteCard: React.FC<SessionCompleteCardProps> = ({
 
   const handleWhatsAppContact = () => {
     const message = comment 
-      ? `Séance terminée ! Mes ressentis : ${comment}`
+      ?`Séance terminée ! Mes ressentis : ${comment}`
       : 'Séance terminée ! Je voulais te partager mes ressentis.';
     
     const phoneNumber = coachPhoneNumber || '';
@@ -94,7 +94,7 @@ export const SessionCompleteCard: React.FC<SessionCompleteCardProps> = ({
             N'hésite pas à partager tes ressentis avec ton coach
           </label>
           <Textarea
-            placeholder="Comment s'est passée la séance ? Des difficultés ? Des progrès ?"
+            placeholder="Comment s'est passée la séance ?Des difficultés ?Des progrès ?"
             value={comment}
             onChange={(e) => handleCommentChange(e.target.value)}
             className="min-h-[120px] bg-white dark:bg-gray-900 border-green-200 dark:border-green-800 focus:border-green-400 dark:focus:border-green-600"
@@ -124,7 +124,7 @@ export const SessionCompleteCard: React.FC<SessionCompleteCardProps> = ({
             size="lg"
             className="w-full bg-green-600 hover:bg-green-700 text-white"
           >
-            {isSubmitting ? 'Enregistrement...' : 'Terminer et revenir à l\'accueil'}
+            {isSubmitting ?'Enregistrement...' : 'Terminer et revenir à l\'accueil'}
           </Button>
         </div>
 

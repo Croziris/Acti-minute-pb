@@ -35,14 +35,14 @@ const ClientHome = () => {
       return records.slice(0, 20).map((record: any) => ({
         ...record,
         workout: record.expand?.workout
-          ? {
+          ?{
               titre: record.expand.workout.titre,
               description: record.expand.workout.description,
               duree_estimee: record.expand.workout.duree_estimee,
             }
           : null,
         week_plan: record.expand?.week_plan
-          ? {
+          ?{
               start_date: record.expand.week_plan.start_date,
               end_date: record.expand.week_plan.end_date,
             }
@@ -107,7 +107,7 @@ const ClientHome = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Cette semaine</p>
                   <p className="text-xl font-bold">
-                    {weekPlan ? 
+                    {weekPlan ?
                       `${weekPlan.sessions.filter(s => s.statut === 'done').length}/${weekPlan.sessions.length}` 
                       : '0/0'
                     }
@@ -126,7 +126,7 @@ const ClientHome = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Statut</p>
                   <p className="text-xl font-bold">
-                    {isOnline ? 'En ligne' : 'Hors ligne'}
+                    {isOnline ?'En ligne' : 'Hors ligne'}
                   </p>
                 </div>
               </div>
@@ -152,13 +152,13 @@ const ClientHome = () => {
 
             <TabsContent value="current" className="mt-0">
               <CardContent className="space-y-3">
-                {loading ? (
+                {loading ?(
                   <div className="space-y-3">
                     {[...Array(3)].map((_, i) => (
                       <div key={i} className="animate-pulse bg-muted/50 rounded-lg h-16"></div>
                     ))}
                   </div>
-                ) : weekPlan && weekPlan.sessions.length > 0 ? (
+                ) : weekPlan && weekPlan.sessions.length > 0 ?(
                   weekPlan.sessions.map((session, index) => {
                     const isNext = session.statut === 'planned' && 
                                  !weekPlan.sessions.slice(0, index).some(s => s.statut === 'planned');
@@ -167,7 +167,7 @@ const ClientHome = () => {
                       <div 
                         key={session.id}
                         className={`flex items-center justify-between p-3 rounded-lg ${
-                          isNext ? 'bg-primary/5 border-l-4 border-primary' : 'bg-muted/50'
+                          isNext ?'bg-primary/5 border-l-4 border-primary' : 'bg-muted/50'
                         }`}
                       >
                         <div>
@@ -175,7 +175,7 @@ const ClientHome = () => {
                             Séance {session.index_num} - {session.workout?.titre || 'Séance'}
                           </h4>
                           <p className="text-sm text-muted-foreground">
-                            {session.workout?.duree_estimee ? `${session.workout.duree_estimee} min • ` : ''}
+                            {session.workout?.duree_estimee ?`${session.workout.duree_estimee} min • ` : ''}
                             {getSessionStatusText(session.statut)}
                           </p>
                         </div>
@@ -218,7 +218,7 @@ const ClientHome = () => {
 
             <TabsContent value="history" className="mt-0">
               <CardContent className="space-y-3">
-                {pastSessions && pastSessions.length > 0 ? (
+                {pastSessions && pastSessions.length > 0 ?(
                   pastSessions.map((session: any) => (
                     <div
                       key={session.id}
@@ -230,8 +230,8 @@ const ClientHome = () => {
                           <h4 className="font-medium">
                             {session.workout?.titre || 'Séance'}
                           </h4>
-                          <Badge variant={session.statut === 'done' ? 'default' : 'destructive'}>
-                            {session.statut === 'done' ? 'Terminée' : 'Sautée'}
+                          <Badge variant={session.statut === 'done' ?'default' : 'destructive'}>
+                            {session.statut === 'done' ?'Terminée' : 'Sautée'}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
