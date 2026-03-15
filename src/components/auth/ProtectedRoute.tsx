@@ -2,7 +2,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 
-type AllowedRole = UserRole | 'spotif.ve';
+type AllowedRole = UserRole;
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,8 +10,8 @@ interface ProtectedRouteProps {
 }
 
 const isRoleAllowed = (userRole: UserRole, allowedRoles: AllowedRole[]) => {
-  if (userRole === 'client') {
-    return allowedRoles.includes('client') || allowedRoles.includes('spotif.ve');
+  if (userRole === 'sportif') {
+    return allowedRoles.includes('sportif');
   }
 
   return allowedRoles.includes(userRole);

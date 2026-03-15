@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { User, Users } from 'lucide-react';
 
-type RoleSelection = 'spotif.ve' | 'coach';
+type RoleSelection = 'sportif' | 'coach';
 
 const AuthPage = () => {
   const { user, login, isLoading } = useAuth();
@@ -21,8 +21,8 @@ const AuthPage = () => {
   // Redirection si déjà connecté
   useEffect(() => {
     if (user && !isLoading) {
-      if (user.role === 'client') {
-        window.location.href = '/client/home';
+      if (user.role === 'sportif') {
+        window.location.href = '/client/dashboard';
       } else if (user.role === 'coach') {
         window.location.href = '/coach/dashboard';
       }
@@ -30,8 +30,8 @@ const AuthPage = () => {
   }, [user, isLoading]);
 
   if (user) {
-    return user.role === 'client' ?
-      <Navigate to="/client/home" replace /> :
+    return user.role === 'sportif' ?
+      <Navigate to="/client/dashboard" replace /> :
       <Navigate to="/coach/dashboard" replace />;
   }
 
@@ -64,7 +64,7 @@ const AuthPage = () => {
     } else {
       toast({
         title: "Connexion réussie",
-        description: `Bienvenue ${selectedRole === 'spotif.ve' ? 'Sportif⸱ve' : 'Coach'} !`,
+        description: `Bienvenue ${selectedRole === 'sportif' ? 'Sportif⸱ve' : 'Coach'} !`,
       });
     }
     setIsSubmitting(false);
@@ -100,7 +100,7 @@ const AuthPage = () => {
         <Card className="shadow-xl border-0">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
-              {!selectedRole ? 'Qui êtes-vous ?' : `Connexion ${selectedRole === 'spotif.ve' ? 'Sportif⸱ve' : 'Coach'}`}
+              {!selectedRole ? 'Qui êtes-vous ?' : `Connexion ${selectedRole === 'sportif' ? 'Sportif⸱ve' : 'Coach'}`}
             </CardTitle>
             <CardDescription>
               {!selectedRole
@@ -113,7 +113,7 @@ const AuthPage = () => {
             {!selectedRole ? (
               <div className="space-y-4">
                 <Button
-                  onClick={() => handleRoleSelect('spotif.ve')}
+                  onClick={() => handleRoleSelect('sportif')}
                   className="w-full h-16 text-left bg-gradient-primary hover:bg-gradient-hero transition-all duration-300"
                   size="lg"
                 >

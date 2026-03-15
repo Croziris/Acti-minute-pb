@@ -16,8 +16,8 @@ import { Search } from 'lucide-react';
 
 interface Client {
   id: string;
-  handle: string;
-  avatar_url?: string;
+  name: string;
+  avatar?: string;
   coach_handle?: string;
   is_available: boolean;
 }
@@ -48,7 +48,7 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
     } else {
       setFilteredClients(
         clients.filter((c) =>
-          c.handle.toLowerCase().includes(search.toLowerCase())
+          c.name.toLowerCase().includes(search.toLowerCase())
         )
       );
     }
@@ -60,8 +60,8 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
       
       // Récupérer tous les sportif⸱ve
       const allClients = await pb.collection('users').getFullList({
-        filter: `role="client" || role="sportif.ve" || role="spotif.ve"`,
-        sort: 'handle',
+        filter: 'role = "sportif"',
+        sort: 'name',
       });
 
       // Récupérer tous les programmes avec les infos des coaches
@@ -116,6 +116,7 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
       if (existingPrograms.length > 0) {
         await pb.collection('programs').update(existingPrograms[0].id, {
           coach: user.id,
+          statut: 'draft',
         });
       } else {
         await pb.collection('programs').create({
@@ -184,13 +185,13 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <Avatar>
-                      <AvatarImage src={client.avatar_url} />
+                      <AvatarImage src={client.avatar} />
                       <AvatarFallback>
-                        {client.handle.slice(0, 2).toUpperCase()}
+                        {(client.name || '??').slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                      <span className="font-medium">{client.handle}</span>
+                      <span className="font-medium">{client.name}</span>
                       {client.coach_handle && (
                         <span className="text-xs text-muted-foreground">
                           Assigné·e à {client.coach_handle}

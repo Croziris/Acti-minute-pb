@@ -2,7 +2,7 @@
 import type { RecordModel } from 'pocketbase';
 import pb from '@/lib/pocketbase';
 
-export type UserRole = 'coach' | 'client';
+export type UserRole = 'coach' | 'sportif';
 
 export interface AppUser {
   id: string;
@@ -28,7 +28,7 @@ const mapRecordToUser = (record: RecordModel | null): AppUser | null => {
   }
 
   const role = record.role;
-  if (role !== 'coach' && role !== 'client') {
+  if (role !== 'coach' && role !== 'sportif') {
     return null;
   }
 
