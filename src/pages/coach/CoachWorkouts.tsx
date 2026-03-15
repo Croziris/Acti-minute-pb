@@ -50,7 +50,7 @@ const CoachWorkouts = () => {
     workout_type: (workout.workout_type || 'classic') as 'classic' | 'circuit',
     session_type: (workout.session_type || 'main') as 'warmup' | 'main' | 'cooldown',
     circuit_rounds: workout.circuit_rounds ?? null,
-    nombre_circuits: workout.nombre_circuits || 1,
+    nombre_circuits: Math.max(1, Number(workout.nombre_circuits ?? 1) || 1),
     circuit_configs: workout.circuit_configs || [{ rounds: 3, rest: 60 }],
     created_at: workout.created_at || workout.created || '',
     exercise_count: exerciseCount,
@@ -67,12 +67,11 @@ const CoachWorkouts = () => {
 
       const workoutsWithCount = await Promise.all(
         workoutsData.map(async (workout) => {
-          const count = await pb.collection('workout_exercises').getList(1, 1, {
-            filter: `workout_id = "${workout.id}"`,
-            skipTotal: false,
+          const countResult = await pb.collection('workout_exercises').getList(1, 1, {
+            filter: `workout = "${workout.id}"`,
           });
 
-          return mapWorkoutRecord(workout, count.totalItems);
+          return mapWorkoutRecord(workout, countResult.totalItems);
         })
       );
 
@@ -98,8 +97,7 @@ const CoachWorkouts = () => {
 
     try {
       const workoutExercises = await pb.collection('workout_exercises').getFullList({
-        filter: `workout_id = "${workoutToDelete}"`,
-        fields: 'id',
+        filter: `workout = "${workoutToDelete}"`,
       });
 
       await Promise.all(
@@ -132,7 +130,7 @@ const CoachWorkouts = () => {
       const workout = await pb.collection('workout').getOne(workoutId);
 
       const exercises = await pb.collection('workout_exercises').getFullList({
-        filter: `workout_id = "${workoutId}"`,
+        filter: `workout = "${workoutId}"`,
         sort: 'order_index',
       });
 
@@ -231,7 +229,7 @@ const CoachWorkouts = () => {
             workoutId={editingWorkout.id}
             workoutType={editingWorkout.workout_type}
             circuitRounds={editingWorkout.circuit_rounds || undefined}
-            nombreCircuits={editingWorkout.nombre_circuits || 1}
+            nombreCircuits={editingWorkout.nombre_circuits}
             circuitConfigs={editingWorkout.circuit_configs || undefined}
           />
         </div>

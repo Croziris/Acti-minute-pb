@@ -71,7 +71,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       const workoutsWithCount = await Promise.all(
         (workoutsData || []).map(async (workout: any) => {
           const workoutExercises = await pb.collection('workout_exercises').getFullList({
-            filter: `workout_id="${workout.id}"`,
+            filter: `workout="${workout.id}"`,
           });
           
           return {

@@ -70,14 +70,14 @@ export const WorkoutEditor: React.FC<Props> = ({
     try {
       setLoading(true);
       const records = await pb.collection('workout_exercises').getFullList({
-        filter: `workout_id = "${workoutId}"`,
+        filter: `workout = "${workoutId}"`,
         sort: 'order_index',
-        expand: 'exercise_id',
+        expand: 'exercise',
       });
 
       const normalized = records.map((record: any) => ({
         id: record.id,
-        exercise_id: record.exercise_id,
+        exercise_id: record.exercise,
         order_index: record.order_index ?? 0,
         series: record.series ?? null,
         reps: record.reps ?? null,
@@ -90,8 +90,8 @@ export const WorkoutEditor: React.FC<Props> = ({
         circuit_number: record.circuit_number || 1,
         tips: record.tips ?? null,
         exercise: {
-          libelle: record.expand?.exercise_id?.libelle || '',
-          description: record.expand?.exercise_id?.description ?? null,
+          libelle: record.expand?.exercise?.libelle || '',
+          description: record.expand?.exercise?.description ?? null,
         },
       })) as WorkoutExercise[];
 
@@ -115,8 +115,8 @@ export const WorkoutEditor: React.FC<Props> = ({
   const handleAddExercise = async (exercise: any) => {
     try {
       await pb.collection('workout_exercises').create({
-        workout_id: workoutId,
-        exercise_id: exercise.id,
+        workout: workoutId,
+        exercise: exercise.id,
         order_index: exercises.length,
         series: workoutType === 'classic' ? 3 : null,
         reps: 10,
