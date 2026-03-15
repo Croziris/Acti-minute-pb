@@ -4,8 +4,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
@@ -38,26 +37,18 @@ export const ClientRoutineAssignment: React.FC<ClientRoutineAssignmentProps> = (
       setLoading(true);
 
       // Fetch coach's routines
-      const { data: routinesData, error: routinesError } = await supabase
-        .from('routines')
-        .select('id, title, type, description')
-        .eq('coach_id', user.id);
+      const routinesData = await pb.collection('routines').getFullList({
+        filter: `coach_id="${user.id}"`,
+      });
 
-      if (routinesError) throw routinesError;
-
-      setRoutines(routinesData || []);
+      setRoutines(routinesData as unknown as Routine[]);
 
       // Fetch assigned routines for this client
-      const { data: assignmentsData, error: assignmentsError } = await supabase
-        .from('client_routines')
-        .select('routine_id')
-        .eq('client_id', clientId)
-        .eq('assigned_by', user.id)
-        .eq('active', true);
+      const assignmentsData = await pb.collection('client_routines').getFullList({
+        filter: `client_id="${clientId}" && assigned_by="${user.id}" && active=true`,
+      });
 
-      if (assignmentsError) throw assignmentsError;
-
-      setAssignedRoutineIds(assignmentsData?.map(a => a.routine_id) || []);
+      setAssignedRoutineIds(assignmentsData?.map((a: any) => a.routine_id) || []);
     } catch (err: any) {
       console.error('Error fetching routines:', err);
       toast.error('Erreur lors du chargement');
@@ -78,47 +69,36 @@ export const ClientRoutineAssignment: React.FC<ClientRoutineAssignmentProps> = (
 
       if (currentlyAssigned) {
         // Remove assignment
-        const { error } = await supabase
-          .from('client_routines')
-          .update({ active: false })
-          .eq('client_id', clientId)
-          .eq('routine_id', routineId)
-          .eq('assigned_by', user.id);
-
-        if (error) throw error;
+        const existingAssignments = await pb.collection('client_routines').getFullList({
+          filter: `client_id="${clientId}" && routine_id="${routineId}" && assigned_by="${user.id}"`,
+        });
+        await Promise.all(
+          existingAssignments.map((assignment: any) =>
+            pb.collection('client_routines').update(assignment.id, { active: false })
+          )
+        );
 
         setAssignedRoutineIds(prev => prev.filter(id => id !== routineId));
         toast.success('Routine retirée');
       } else {
         // Check if assignment exists but is inactive
-        const { data: existing } = await supabase
-          .from('client_routines')
-          .select('id')
-          .eq('client_id', clientId)
-          .eq('routine_id', routineId)
-          .eq('assigned_by', user.id)
-          .maybeSingle();
+        const existingRecords = await pb.collection('client_routines').getFullList({
+          filter: `client_id="${clientId}" && routine_id="${routineId}" && assigned_by="${user.id}"`,
+          sort: '-created',
+        });
+        const existing = existingRecords[0];
 
         if (existing) {
           // Reactivate
-          const { error } = await supabase
-            .from('client_routines')
-            .update({ active: true })
-            .eq('id', existing.id);
-
-          if (error) throw error;
+          await pb.collection('client_routines').update(existing.id, { active: true });
         } else {
           // Create new assignment
-          const { error } = await supabase
-            .from('client_routines')
-            .insert({
-              client_id: clientId,
-              routine_id: routineId,
-              assigned_by: user.id,
-              active: true
-            });
-
-          if (error) throw error;
+          await pb.collection('client_routines').create({
+            client_id: clientId,
+            routine_id: routineId,
+            assigned_by: user.id,
+            active: true
+          });
         }
 
         setAssignedRoutineIds(prev => [...prev, routineId]);

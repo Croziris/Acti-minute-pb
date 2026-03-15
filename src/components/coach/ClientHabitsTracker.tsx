@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { format, subWeeks, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -46,43 +45,34 @@ export const ClientHabitsTracker: React.FC<Props> = ({ clientId }) => {
       setLoading(true);
 
       // Récupérer les habitudes assignées
-      const { data: assignments, error: assignError } = await supabase
-        .from('habit_assignment')
-        .select(`
-          id,
-          habit:habit_id (
-            id,
-            titre,
-            description
-          )
-        `)
-        .eq('client_id', clientId)
-        .eq('active', true);
-
-      if (assignError) throw assignError;
+      const assignments = await pb.collection('habit_assignments').getFullList({
+        filter: `client_id="${clientId}" && active=true`,
+        expand: 'habit_id',
+      });
 
       // Récupérer les checks des 4 dernières semaines
-      const { data: checks, error: checksError } = await supabase
-        .from('habit_check')
-        .select('*')
-        .eq('client_id', clientId)
-        .gte('date', format(fourWeeksAgo, 'yyyy-MM-dd'));
-
-      if (checksError) throw checksError;
+      const checks = await pb.collection('habit_checks').getFullList({
+        filter: `client_id="${clientId}" && date >= "${format(fourWeeksAgo, 'yyyy-MM-dd')}"`,
+      });
 
       // Grouper les checks par habit_id
       const checksMap = new Map<string, HabitCheck[]>();
-      checks?.forEach((check) => {
+      checks?.forEach((check: any) => {
         if (!checksMap.has(check.habit_id)) {
           checksMap.set(check.habit_id, []);
         }
-        checksMap.get(check.habit_id)?.push(check);
+        checksMap.get(check.habit_id)?.push(check as HabitCheck);
       });
 
       // Merger les données
-      const habitsWithChecks = assignments?.map((assignment) => ({
-        ...assignment,
-        checks: checksMap.get(assignment.habit.id) || [],
+      const habitsWithChecks = assignments?.map((assignment: any) => ({
+        id: assignment.id,
+        habit: {
+          id: assignment.expand?.habit_id?.id || assignment.habit_id,
+          titre: assignment.expand?.habit_id?.titre || '',
+          description: assignment.expand?.habit_id?.description,
+        },
+        checks: checksMap.get(assignment.habit_id) || [],
       })) || [];
 
       setHabits(habitsWithChecks);

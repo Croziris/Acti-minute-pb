@@ -5,8 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
@@ -52,19 +51,19 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
       setLoading(true);
 
       // Fetch clients
-      const { data: programs } = await supabase
-        .from('program')
-        .select('client_id, app_user!program_client_id_fkey(id, handle, avatar_url)')
-        .eq('coach_id', user.id);
+      const programs = await pb.collection('programs').getFullList({
+        filter: `coach_id="${user.id}"`,
+        expand: 'client_id',
+      });
 
       const uniqueClients = Array.from(
         new Map(
-          programs?.map(p => [
-            (p.app_user as any).id,
+          programs?.map((p: any) => [
+            (p.expand?.client_id as any)?.id || p.client_id,
             {
-              id: (p.app_user as any).id,
-              handle: (p.app_user as any).handle,
-              avatar_url: (p.app_user as any).avatar_url
+              id: (p.expand?.client_id as any)?.id || p.client_id,
+              handle: (p.expand?.client_id as any)?.handle || (p.expand?.client_id as any)?.name || (p.expand?.client_id as any)?.email || '',
+              avatar_url: (p.expand?.client_id as any)?.avatar_url || (p.expand?.client_id as any)?.avatar || null
             }
           ]) || []
         ).values()
@@ -73,10 +72,9 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
       setClients(uniqueClients);
 
       // Fetch existing assignments
-      const { data: assignmentsData } = await supabase
-        .from('client_routines')
-        .select('client_id, routine_id, active')
-        .eq('assigned_by', user.id);
+      const assignmentsData = await pb.collection('client_routines').getFullList({
+        filter: `assigned_by="${user.id}"`,
+      });
 
       const assignmentsMap: Record<string, string[]> = {};
       assignmentsData?.forEach(assignment => {
@@ -109,14 +107,14 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
 
       if (currentlyAssigned) {
         // Remove assignment
-        const { error } = await supabase
-          .from('client_routines')
-          .update({ active: false })
-          .eq('client_id', clientId)
-          .eq('routine_id', routineId)
-          .eq('assigned_by', user.id);
-
-        if (error) throw error;
+        const existingAssignments = await pb.collection('client_routines').getFullList({
+          filter: `client_id="${clientId}" && routine_id="${routineId}" && assigned_by="${user.id}"`,
+        });
+        await Promise.all(
+          existingAssignments.map((assignment: any) =>
+            pb.collection('client_routines').update(assignment.id, { active: false })
+          )
+        );
 
         setAssignments(prev => ({
           ...prev,
@@ -124,34 +122,23 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
         }));
       } else {
         // Check if assignment exists but is inactive
-        const { data: existing } = await supabase
-          .from('client_routines')
-          .select('id')
-          .eq('client_id', clientId)
-          .eq('routine_id', routineId)
-          .eq('assigned_by', user.id)
-          .maybeSingle();
+        const existingRecords = await pb.collection('client_routines').getFullList({
+          filter: `client_id="${clientId}" && routine_id="${routineId}" && assigned_by="${user.id}"`,
+          sort: '-created',
+        });
+        const existing = existingRecords[0];
 
         if (existing) {
           // Reactivate
-          const { error } = await supabase
-            .from('client_routines')
-            .update({ active: true })
-            .eq('id', existing.id);
-
-          if (error) throw error;
+          await pb.collection('client_routines').update(existing.id, { active: true });
         } else {
           // Create new assignment
-          const { error } = await supabase
-            .from('client_routines')
-            .insert({
-              client_id: clientId,
-              routine_id: routineId,
-              assigned_by: user.id,
-              active: true
-            });
-
-          if (error) throw error;
+          await pb.collection('client_routines').create({
+            client_id: clientId,
+            routine_id: routineId,
+            assigned_by: user.id,
+            active: true
+          });
         }
 
         setAssignments(prev => ({

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+﻿import React, { useState, useEffect } from 'react';
+import { pb } from '@/lib/pocketbase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,104 +73,97 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
     try {
       setLoading(true);
 
-      // Récupérer tous les week_plans avec leurs sessions (combinées et simples)
-      const { data: weekPlansData, error: weekPlansError } = await supabase
-        .from('week_plan')
-        .select(`
-          id,
-          iso_week,
-          start_date,
-          end_date,
-          session (
-            id,
-            index_num,
-            statut,
-            workout_id,
-            workout:workout_id (
-              id,
-              titre,
-              description,
-              duree_estimee,
-              workout_type,
-              circuit_rounds,
-              session_type
-            ),
-            session_workout (
-              order_index,
-              workout (
-                id,
-                titre,
-                description,
-                duree_estimee,
-                workout_type,
-                circuit_rounds,
-                session_type
-              )
-            )
-          )
-        `)
-        .eq('program_id', programId)
-        .order('start_date', { ascending: true });
+      const weekPlansData = await pb.collection('week_plans').getFullList({
+        filter: `program_id="${programId}"`,
+        sort: 'start_date',
+      });
 
-      if (weekPlansError) throw weekPlansError;
+      const organized = await Promise.all(
+        (weekPlansData || []).map(async (wp: any) => {
+          const sessionsData = await pb.collection('sessions').getFullList({
+            filter: `week_plan_id="${wp.id}"`,
+            sort: 'index_num',
+          });
 
-      // Organiser les données avec support des sessions combinées
-      const organized = (weekPlansData || []).map(wp => ({
-        id: wp.id,
-        iso_week: wp.iso_week,
-        start_date: wp.start_date,
-        end_date: wp.end_date,
-        sessions: (wp.session || [])
-          .map((s: any) => {
-            // Cas 1 : Session combinée (plusieurs workouts via session_workout)
-            if (s.session_workout && s.session_workout.length > 0) {
-              const workouts = s.session_workout
-                .sort((a: any, b: any) => a.order_index - b.order_index)
-                .map((sw: any) => sw.workout);
-              
-              return {
-                id: s.id,
-                index_num: s.index_num,
-                statut: s.statut,
-                isCombined: true,
-                workouts: workouts,
-                workout: {
-                  titre: workouts.map((w: any) => w.titre).join(' + '),
-                  description: `${workouts.length} séances combinées`,
-                  duree_estimee: workouts.reduce((sum: number, w: any) => sum + (w.duree_estimee || 0), 0),
-                  workout_type: 'combined' as const,
-                  circuit_rounds: null
-                }
-              };
-            }
-            
-            // Cas 2 : Session simple (workout via workout_id)
-            if (s.workout_id && s.workout) {
-              console.log('✅ Session simple détectée:', s.id, s.workout.titre);
+          const normalizedSessions: Session[] = await Promise.all(
+            sessionsData.map(async (s: any) => {
+              const workoutIds = Array.isArray(s.workout_ids)
+                ? s.workout_ids
+                : (s.workout_id ? [s.workout_id] : []);
+
+              if (workoutIds.length > 1) {
+                const workouts = await Promise.all(
+                  workoutIds.map((workoutId: string) => pb.collection('workout').getOne(workoutId))
+                );
+
+                return {
+                  id: s.id,
+                  index_num: s.index_num,
+                  statut: s.statut,
+                  isCombined: true,
+                  workouts: workouts.map((w: any) => ({
+                    id: w.id,
+                    titre: w.titre,
+                    description: w.description ?? null,
+                    duree_estimee: w.duree_estimee ?? null,
+                    workout_type: w.workout_type,
+                    session_type: w.session_type,
+                  })),
+                  workout: {
+                    titre: workouts.map((w: any) => w.titre).join(' + '),
+                    description: `${workouts.length} sÃ©ances combinÃ©es`,
+                    duree_estimee: workouts.reduce((sum: number, w: any) => sum + (w.duree_estimee || 0), 0),
+                    workout_type: 'combined',
+                    circuit_rounds: null,
+                  },
+                } as Session;
+              }
+
+              if (s.workout_id) {
+                const workout = await pb.collection('workout').getOne(s.workout_id);
+                return {
+                  id: s.id,
+                  index_num: s.index_num,
+                  statut: s.statut,
+                  isCombined: false,
+                  workout: {
+                    titre: (workout as any).titre,
+                    description: (workout as any).description ?? null,
+                    duree_estimee: (workout as any).duree_estimee ?? null,
+                    workout_type: (workout as any).workout_type || 'classic',
+                    circuit_rounds: (workout as any).circuit_rounds ?? null,
+                  },
+                } as Session;
+              }
+
               return {
                 id: s.id,
                 index_num: s.index_num,
                 statut: s.statut,
                 isCombined: false,
                 workout: {
-                  titre: s.workout.titre,
-                  description: s.workout.description,
-                  duree_estimee: s.workout.duree_estimee,
-                  workout_type: s.workout.workout_type || 'classic',
-                  circuit_rounds: s.workout.circuit_rounds
-                }
-              };
-            }
-            
-            console.warn('⚠️ Session ignorée (ni simple ni combinée):', s.id);
-            return null;
-          })
-          .filter((s: any) => s !== null)
-          .sort((a: Session, b: Session) => a.index_num - b.index_num)
-      }));
+                  titre: 'SÃ©ance sans workout',
+                  description: null,
+                  duree_estimee: null,
+                  workout_type: 'classic',
+                  circuit_rounds: null,
+                },
+              } as Session;
+            })
+          );
 
-      // Trier les semaines : semaine actuelle en premier, puis futures, puis passées
-      // Normaliser la date actuelle à minuit pour comparer correctement avec les dates de début/fin
+          return {
+            id: wp.id,
+            iso_week: wp.iso_week,
+            start_date: wp.start_date,
+            end_date: wp.end_date,
+            sessions: normalizedSessions.sort((a, b) => a.index_num - b.index_num),
+          } as WeekPlan;
+        })
+      );
+
+      // Trier les semaines : semaine actuelle en premier, puis futures, puis passÃ©es
+      // Normaliser la date actuelle Ã  minuit pour comparer correctement avec les dates de dÃ©but/fin
       const now = new Date();
       now.setHours(0, 0, 0, 0);
       const sorted = organized.sort((a, b) => {
@@ -183,14 +175,14 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
         bStart.setHours(0, 0, 0, 0);
         const bEnd = parseISO(b.end_date);
         bEnd.setHours(23, 59, 59, 999);
-        
+
         const aIsCurrent = now >= aStart && now <= aEnd;
         const bIsCurrent = now >= bStart && now <= bEnd;
-        
+
         // Semaine actuelle toujours en premier
         if (aIsCurrent && !bIsCurrent) return -1;
         if (!aIsCurrent && bIsCurrent) return 1;
-        
+
         // Sinon, ordre chronologique
         return aStart.getTime() - bStart.getTime();
       });
@@ -207,21 +199,15 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
       setLoading(false);
     }
   };
-
   const handleDeleteSession = async () => {
     if (!sessionToDelete) return;
 
     try {
-      const { error } = await supabase
-        .from('session')
-        .delete()
-        .eq('id', sessionToDelete);
-
-      if (error) throw error;
+      await pb.collection('sessions').delete(sessionToDelete);
 
       toast({
-        title: 'Séance supprimée',
-        description: 'La séance a été retirée du programme'
+        title: 'SÃ©ance supprimÃ©e',
+        description: 'La sÃ©ance a Ã©tÃ© retirÃ©e du programme'
       });
 
       fetchWeekPlans();
@@ -229,7 +215,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
       console.error('Error deleting session:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer la séance',
+        description: 'Impossible de supprimer la sÃ©ance',
         variant: 'destructive',
       });
     } finally {
@@ -240,10 +226,10 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
 
   const getStatusBadge = (statut: string) => {
     const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      planned: { label: 'À faire', variant: 'outline' },
+      planned: { label: 'Ã€ faire', variant: 'outline' },
       in_progress: { label: 'En cours', variant: 'default' },
-      completed: { label: 'Terminée', variant: 'secondary' },
-      skipped: { label: 'Sautée', variant: 'destructive' }
+      completed: { label: 'TerminÃ©e', variant: 'secondary' },
+      skipped: { label: 'SautÃ©e', variant: 'destructive' }
     };
 
     const config = statusConfig[statut] || statusConfig.planned;
@@ -263,14 +249,14 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Programme d'entraînement</h2>
+          <h2 className="text-2xl font-bold">Programme d'entraÃ®nement</h2>
           <p className="text-muted-foreground">
-            Assignez des séances au client par semaine
+            Assignez des sÃ©ances au client par semaine
           </p>
         </div>
         <Button onClick={() => setAssignDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Ajouter une séance
+          Ajouter une sÃ©ance
         </Button>
       </div>
 
@@ -278,13 +264,13 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium mb-2">Aucune séance planifiée</p>
+            <p className="text-lg font-medium mb-2">Aucune sÃ©ance planifiÃ©e</p>
             <p className="text-muted-foreground text-center mb-4">
-              Commencez par ajouter des séances au programme de votre client
+              Commencez par ajouter des sÃ©ances au programme de votre client
             </p>
             <Button onClick={() => setAssignDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter une séance
+              Ajouter une sÃ©ance
             </Button>
           </CardContent>
         </Card>
@@ -313,7 +299,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                         {format(parseISO(weekPlan.end_date), 'dd MMM yyyy', { locale: fr })}
                       </CardTitle>
                       <CardDescription>
-                        {weekPlan.sessions.length} séance{weekPlan.sessions.length > 1 ? 's' : ''} planifiée{weekPlan.sessions.length > 1 ? 's' : ''}
+                        {weekPlan.sessions.length} sÃ©ance{weekPlan.sessions.length > 1 ? 's' : ''} planifiÃ©e{weekPlan.sessions.length > 1 ? 's' : ''}
                       </CardDescription>
                     </div>
                   </div>
@@ -321,7 +307,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
               <CardContent>
                 {weekPlan.sessions.length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">
-                    Aucune séance pour cette semaine
+                    Aucune sÃ©ance pour cette semaine
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -337,12 +323,12 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <Badge variant="default">Séance {session.index_num}</Badge>
+                                <Badge variant="default">SÃ©ance {session.index_num}</Badge>
                                 {getStatusBadge(session.statut)}
                                 {session.isCombined && (
                                   <Badge variant="secondary" className="gap-1">
                                     <Layers className="h-3 w-3" />
-                                    Combinée
+                                    CombinÃ©e
                                   </Badge>
                                 )}
                                 {!session.isCombined && session.workout.workout_type === 'circuit' && (
@@ -350,23 +336,23 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                                 )}
                                 <Badge variant="outline" className="gap-1">
                                   <Eye className="h-3 w-3" />
-                                  Voir détails
+                                  Voir dÃ©tails
                                 </Badge>
                               </div>
                               
                               {session.isCombined && session.workouts ? (
                                 <div className="space-y-2">
-                                  <CardTitle className="text-lg mb-2">Session combinée</CardTitle>
+                                  <CardTitle className="text-lg mb-2">Session combinÃ©e</CardTitle>
                                   {session.workouts.map((w, idx) => (
                                     <div key={w.id} className="flex items-center gap-2 text-sm">
                                       <Badge variant="outline" className="text-xs">
                                         {idx + 1}
                                       </Badge>
                                       <span>
-                                        {w.session_type === 'warmup' && '🔥'}
-                                        {w.session_type === 'main' && '💪'}
-                                        {w.session_type === 'cooldown' && '🧘'}
-                                        {!w.session_type && '📋'}
+                                        {w.session_type === 'warmup' && 'ðŸ”¥'}
+                                        {w.session_type === 'main' && 'ðŸ’ª'}
+                                        {w.session_type === 'cooldown' && 'ðŸ§˜'}
+                                        {!w.session_type && 'ðŸ“‹'}
                                       </span>
                                       <span className="font-medium">{w.titre}</span>
                                     </div>
@@ -442,9 +428,9 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cette séance ?</AlertDialogTitle>
+            <AlertDialogTitle>Supprimer cette sÃ©ance ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. La séance sera retirée du programme.
+              Cette action est irrÃ©versible. La sÃ©ance sera retirÃ©e du programme.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

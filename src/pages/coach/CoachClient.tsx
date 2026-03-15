@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { CoachLayout } from '@/components/layout/CoachLayout';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,27 +21,20 @@ const CoachClient = () => {
     const fetchClientData = async () => {
       try {
         // Fetch client info
-        const { data: clientData, error: clientError } = await supabase
-          .from('app_user')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (clientError) throw clientError;
+        const clientData = await pb.collection('users').getOne(id);
         setClient(clientData);
 
         // Fetch program
-        const { data: programData, error: programError } = await supabase
-          .from('program')
-          .select('*')
-          .eq('client_id', id)
-          .single();
-
-        if (programError && programError.code !== 'PGRST116') {
-          throw programError;
+        try {
+          const programData = await pb.collection('programs').getFirstListItem(`client_id="${id}"`);
+          setProgram(programData);
+        } catch (programError: any) {
+          if (programError?.status === 404) {
+            setProgram(null);
+          } else {
+            throw programError;
+          }
         }
-
-        setProgram(programData);
       } catch (error) {
         console.error('Error fetching client:', error);
       } finally {

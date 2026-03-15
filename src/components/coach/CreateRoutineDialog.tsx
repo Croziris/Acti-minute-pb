@@ -8,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, Plus, GripVertical } from 'lucide-react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -63,14 +62,10 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
   }, [open, editingRoutine]);
 
   const fetchExercises = async () => {
-    const { data, error } = await supabase
-      .from('exercise')
-      .select('id, libelle, description')
-      .order('libelle');
-
-    if (!error && data) {
-      setAvailableExercises(data);
-    }
+    const data = await pb.collection('exercises').getFullList({
+      sort: 'libelle',
+    });
+    setAvailableExercises(data as unknown as Exercise[]);
   };
 
   const loadEditingRoutine = async () => {
@@ -83,17 +78,17 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
     setTips(editingRoutine.tips?.length > 0 ? editingRoutine.tips : ['']);
 
     if (editingRoutine.type === 'exercises') {
-      const { data: exercisesData } = await supabase
-        .from('routine_exercises')
-        .select('*, exercise:exercise_id(id, libelle)')
-        .eq('routine_id', editingRoutine.id)
-        .order('order_index');
+      const exercisesData = await pb.collection('routine_exercises').getFullList({
+        filter: `routine_id="${editingRoutine.id}"`,
+        sort: 'order_index',
+        expand: 'exercise_id',
+      });
 
       if (exercisesData) {
         setSelectedExercises(
           exercisesData.map((ex: any) => ({
             exerciseId: ex.exercise_id,
-            exerciseName: ex.exercise.libelle,
+            exerciseName: ex.expand?.exercise_id?.libelle || '',
             repetitions: ex.repetitions,
             orderIndex: ex.order_index
           }))
@@ -184,28 +179,17 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
 
       if (editingRoutine) {
         // Update existing routine
-        const { error } = await supabase
-          .from('routines')
-          .update(routineData)
-          .eq('id', editingRoutine.id);
-
-        if (error) throw error;
+        await pb.collection('routines').update(editingRoutine.id, routineData);
         routineId = editingRoutine.id;
 
         // Delete existing exercises
-        await supabase
-          .from('routine_exercises')
-          .delete()
-          .eq('routine_id', routineId);
+        const existingExercises = await pb.collection('routine_exercises').getFullList({
+          filter: `routine_id="${routineId}"`,
+        });
+        await Promise.all(existingExercises.map((item: any) => pb.collection('routine_exercises').delete(item.id)));
       } else {
         // Create new routine
-        const { data, error } = await supabase
-          .from('routines')
-          .insert(routineData)
-          .select()
-          .single();
-
-        if (error) throw error;
+        const data = await pb.collection('routines').create(routineData);
         routineId = data.id;
       }
 
@@ -218,11 +202,9 @@ export const CreateRoutineDialog: React.FC<CreateRoutineDialogProps> = ({
           repetitions: ex.repetitions
         }));
 
-        const { error: exError } = await supabase
-          .from('routine_exercises')
-          .insert(exercisesToInsert);
-
-        if (exError) throw exError;
+        await Promise.all(
+          exercisesToInsert.map((exercise) => pb.collection('routine_exercises').create(exercise))
+        );
       }
 
       toast.success(editingRoutine ? 'Routine mise à jour' : 'Routine créée avec succès');

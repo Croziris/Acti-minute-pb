@@ -14,8 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock, Dumbbell, Plus, Layers } from 'lucide-react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -64,20 +63,16 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
 
   const fetchTemplates = async () => {
     try {
-      const { data: workoutsData, error } = await supabase
-        .from('workout')
-        .select('*')
-        .eq('is_template', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const workoutsData = await pb.collection('workout').getFullList({
+        filter: 'is_template=true',
+        sort: '-created',
+      });
 
       const workoutsWithCount = await Promise.all(
-        (workoutsData || []).map(async (workout) => {
-          const { count } = await supabase
-            .from('workout_exercise')
-            .select('*', { count: 'exact', head: true })
-            .eq('workout_id', workout.id);
+        (workoutsData || []).map(async (workout: any) => {
+          const workoutExercises = await pb.collection('workout_exercises').getFullList({
+            filter: `workout_id="${workout.id}"`,
+          });
           
           return {
             id: workout.id,
@@ -87,7 +82,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
             workout_type: (workout.workout_type || 'classic') as 'classic' | 'circuit',
             session_type: workout.session_type as 'warmup' | 'main' | 'cooldown' | undefined,
             circuit_rounds: workout.circuit_rounds,
-            exercise_count: count || 0
+            exercise_count: workoutExercises.length || 0
           } as Workout;
         })
       );
@@ -143,55 +138,33 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       
       const isoWeek = getISOWeek(weekStart);
 
-      let { data: weekPlan, error: weekPlanError } = await supabase
-        .from('week_plan')
-        .select('*')
-        .eq('program_id', programId)
-        .eq('start_date', weekStartStr)
-        .eq('end_date', weekEndStr)
-        .maybeSingle();
-
-      if (weekPlanError) throw weekPlanError;
+      const existingWeekPlans = await pb.collection('week_plans').getFullList({
+        filter: `program_id="${programId}" && start_date="${weekStartStr}" && end_date="${weekEndStr}"`,
+        sort: '-created',
+      });
+      let weekPlan = existingWeekPlans[0] as any;
 
       if (!weekPlan) {
-        const { data: newWeekPlan, error: createError } = await supabase
-          .from('week_plan')
-          .insert({
-            program_id: programId,
-            iso_week: isoWeek,
-            start_date: weekStartStr,
-            end_date: weekEndStr,
-            expected_sessions: 1
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        weekPlan = newWeekPlan;
+        weekPlan = await pb.collection('week_plans').create({
+          program_id: programId,
+          iso_week: isoWeek,
+          start_date: weekStartStr,
+          end_date: weekEndStr,
+          expected_sessions: 1
+        });
       } else {
-        const { error: updateError } = await supabase
-          .from('week_plan')
-          .update({ 
-            expected_sessions: (weekPlan.expected_sessions || 0) + 1 
-          })
-          .eq('id', weekPlan.id);
-
-        if (updateError) throw updateError;
+        await pb.collection('week_plans').update(weekPlan.id, {
+          expected_sessions: (weekPlan.expected_sessions || 0) + 1
+        });
       }
 
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('session')
-        .insert({
-          client_id: clientId,
-          workout_id: selectedTemplate,
-          week_plan_id: weekPlan.id,
-          index_num: parseInt(sessionNumber),
-          statut: 'planned'
-        })
-        .select()
-        .single();
-
-      if (sessionError) throw sessionError;
+      await pb.collection('sessions').create({
+        client_id: clientId,
+        workout_id: selectedTemplate,
+        week_plan_id: weekPlan.id,
+        index_num: parseInt(sessionNumber),
+        statut: 'planned'
+      });
 
       // ✅ NE PAS créer d'entrée dans session_workout pour les sessions simples
       // Cette table est UNIQUEMENT pour les sessions combinées
@@ -246,67 +219,34 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       
       const isoWeek = getISOWeek(weekStart);
 
-      let { data: weekPlan, error: weekPlanError } = await supabase
-        .from('week_plan')
-        .select('*')
-        .eq('program_id', programId)
-        .eq('start_date', weekStartStr)
-        .eq('end_date', weekEndStr)
-        .maybeSingle();
-
-      if (weekPlanError) throw weekPlanError;
+      const existingWeekPlans = await pb.collection('week_plans').getFullList({
+        filter: `program_id="${programId}" && start_date="${weekStartStr}" && end_date="${weekEndStr}"`,
+        sort: '-created',
+      });
+      let weekPlan = existingWeekPlans[0] as any;
 
       if (!weekPlan) {
-        const { data: newWeekPlan, error: createError } = await supabase
-          .from('week_plan')
-          .insert({
-            program_id: programId,
-            iso_week: isoWeek,
-            start_date: weekStartStr,
-            end_date: weekEndStr,
-            expected_sessions: 1
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        weekPlan = newWeekPlan;
+        weekPlan = await pb.collection('week_plans').create({
+          program_id: programId,
+          iso_week: isoWeek,
+          start_date: weekStartStr,
+          end_date: weekEndStr,
+          expected_sessions: 1
+        });
       } else {
-        const { error: updateError } = await supabase
-          .from('week_plan')
-          .update({ 
-            expected_sessions: (weekPlan.expected_sessions || 0) + 1 
-          })
-          .eq('id', weekPlan.id);
-
-        if (updateError) throw updateError;
+        await pb.collection('week_plans').update(weekPlan.id, {
+          expected_sessions: (weekPlan.expected_sessions || 0) + 1
+        });
       }
 
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('session')
-        .insert({
-          client_id: clientId,
-          workout_id: null,
-          week_plan_id: weekPlan.id,
-          index_num: parseInt(sessionNumber),
-          statut: 'planned'
-        })
-        .select()
-        .single();
-
-      if (sessionError) throw sessionError;
-
-      const sessionWorkoutLinks = selectedWorkouts.map((workout, index) => ({
-        session_id: sessionData.id,
-        workout_id: workout.id,
-        order_index: index,
-      }));
-
-      const { error: linksError } = await supabase
-        .from('session_workout')
-        .insert(sessionWorkoutLinks);
-
-      if (linksError) throw linksError;
+      await pb.collection('sessions').create({
+        client_id: clientId,
+        workout_id: null,
+        workout_ids: selectedWorkouts.map((workout) => workout.id),
+        week_plan_id: weekPlan.id,
+        index_num: parseInt(sessionNumber),
+        statut: 'planned'
+      });
 
       toast({
         title: "Session combinée créée",

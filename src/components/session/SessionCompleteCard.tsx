@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Trophy, MessageCircle } from 'lucide-react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,16 +35,11 @@ export const SessionCompleteCard: React.FC<SessionCompleteCardProps> = ({
   const handleComplete = async () => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('session')
-        .update({
-          statut: 'done',
-          date_terminee: new Date().toISOString(),
-          commentaire_fin: comment || null,
-        })
-        .eq('id', sessionId);
-
-      if (error) throw error;
+      await pb.collection('sessions').update(sessionId, {
+        statut: 'done',
+        date_terminee: new Date().toISOString(),
+        commentaire_fin: comment || null,
+      });
 
       toast({
         title: "🎉 Séance terminée !",

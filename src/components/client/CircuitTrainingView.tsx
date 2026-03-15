@@ -9,8 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Timer, CheckCircle, Dumbbell } from 'lucide-react';
 import { CircuitExerciseCard } from './CircuitExerciseCard';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useToast } from '@/hooks/use-toast';
 
 interface Exercise {
@@ -89,13 +88,10 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       try {
         console.log("📂 Chargement de la progression...");
         
-        const { data, error } = await supabase
-          .from('circuit_progress')
-          .select('*')
-          .eq('session_id', sessionId)
-          .order('circuit_number', { ascending: true });
-
-        if (error) throw error;
+        const data = await pb.collection('session_progress').getFullList({
+          filter: `session_id="${sessionId}"`,
+          sort: 'circuit_number',
+        });
 
         if (data && data.length > 0) {
           console.log("✅ Progression trouvée:", data);
@@ -184,19 +180,24 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
     try {
       console.log(`💾 Sauvegarde : Circuit ${circuitNumber}, Tours ${roundsCompleted}`);
       
-      const { error } = await supabase
-        .from('circuit_progress')
-        .upsert({
-          session_id: sessionId,
-          circuit_number: circuitNumber,
-          completed_rounds: roundsCompleted,
-          exercise_data: currentExerciseData,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'session_id,circuit_number'
-        });
+      const existing = await pb.collection('session_progress').getFullList({
+        filter: `session_id="${sessionId}" && circuit_number=${circuitNumber} && progress_type="circuit"`,
+        sort: '-created',
+      });
 
-      if (error) throw error;
+      const payload = {
+        session_id: sessionId,
+        circuit_number: circuitNumber,
+        completed_rounds: roundsCompleted,
+        exercise_data: currentExerciseData,
+        progress_type: 'circuit',
+      };
+
+      if (existing.length > 0) {
+        await pb.collection('session_progress').update(existing[0].id, payload);
+      } else {
+        await pb.collection('session_progress').create(payload);
+      }
       
       console.log(`✅ Sauvegarde OK : Circuit ${circuitNumber}, ${roundsCompleted} tours`);
     } catch (error) {
@@ -232,8 +233,14 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
         };
       });
       
-      const { error } = await supabase.from('set_log').insert(logsToSave);
-      if (error) throw error;
+      await Promise.all(
+        logsToSave.map((log) =>
+          pb.collection('session_progress').create({
+            ...log,
+            progress_type: 'set_log',
+          })
+        )
+      );
 
       toast({
         title: "Tour enregistré",
@@ -303,10 +310,14 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       console.log("🎉 FIN DE SÉANCE DÉTECTÉE");
       
       // Supprimer la progression sauvegardée
-      await supabase
-        .from('circuit_progress')
-        .delete()
-        .eq('session_id', sessionId);
+      const progressRecords = await pb.collection('session_progress').getFullList({
+        filter: `session_id="${sessionId}"`,
+      });
+      await Promise.all(
+        progressRecords
+          .filter((record: any) => record.progress_type === 'circuit')
+          .map((record: any) => pb.collection('session_progress').delete(record.id))
+      );
       
       console.log("🗑️ Progression supprimée (séance terminée)");
       
@@ -324,7 +335,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
 
   const handleCircuitFeedbackSubmit = async () => {
     try {
-      await supabase.from('exercise_feedback').insert({
+      await pb.collection('session_progress').create({
         session_id: sessionId,
         exercise_id: null,
         feedback_type: 'circuit',
@@ -332,6 +343,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
         rpe: circuitRPE,
         difficulte_0_10: circuitDifficulte,
         plaisir_0_10: circuitPlaisir,
+        progress_type: 'feedback',
       });
 
       setShowCircuitFeedback(false);
@@ -353,7 +365,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
 
   const handleFinalFeedbackSubmit = async () => {
     try {
-      await supabase.from('exercise_feedback').insert({
+      await pb.collection('session_progress').create({
         session_id: sessionId,
         exercise_id: null,
         feedback_type: 'session',
@@ -361,6 +373,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
         rpe: sessionRPE,
         difficulte_0_10: sessionDifficulte,
         plaisir_0_10: sessionPlaisir,
+        progress_type: 'feedback',
       });
 
       console.log("✅ Feedback final enregistré - Appel onAllComplete()");

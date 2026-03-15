@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronUp, ChevronDown, Trash2, Plus, Layers } from 'lucide-react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useToast } from '@/hooks/use-toast';
 
 interface Workout {
@@ -34,18 +33,15 @@ export const CombinedWorkoutsBuilder: React.FC<CombinedWorkoutsBuilderProps> = (
   }, []);
 
   const loadWorkouts = async () => {
-    const { data, error } = await supabase
-      .from('workout')
-      .select('id, titre, description, session_type, workout_type, duree_estimee')
-      .eq('is_template', true)
-      .order('titre');
-    
-    if (error) {
+    try {
+      const data = await pb.collection('workout').getFullList({
+        filter: 'is_template=true',
+        sort: 'titre',
+      });
+      setAvailableWorkouts((data || []) as unknown as Workout[]);
+    } catch (error) {
       console.error('Error loading workouts:', error);
-      return;
     }
-    
-    setAvailableWorkouts((data || []) as Workout[]);
   };
 
   const handleAddWorkout = () => {

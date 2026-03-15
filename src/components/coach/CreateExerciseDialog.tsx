@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+﻿import React, { useState } from 'react';
+import { pb } from '@/lib/pocketbase';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { extractYouTubeVideoId } from '@/lib/utils';
 
 interface Props {
   open: boolean;
@@ -50,28 +50,20 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
     try {
       setLoading(true);
 
-      const { data, error } = await supabase.functions.invoke('create-exercise', {
-        body: {
-          libelle: libelle.trim(),
-          description: description.trim(),
-          youtube_url: youtubeUrl.trim(),
-          niveau: niveau.trim(),
-          categories: [],
-          groupes: [],
-          materiel: [],
-        },
-      });
+      const payload = {
+        libelle: libelle.trim(),
+        description: description.trim(),
+        youtube_url: youtubeUrl.trim(),
+        video_id: extractYouTubeVideoId(youtubeUrl.trim()) || '',
+        video_provider: youtubeUrl.trim() ? 'youtube' : '',
+        niveau: niveau.trim(),
+        categories: [],
+        groupes: [],
+        materiel: [],
+        verified: false,
+      };
 
-      if (error) throw error;
-
-      if (data?.error) {
-        toast({
-          title: 'Erreur',
-          description: data.error,
-          variant: 'destructive',
-        });
-        return;
-      }
+      await pb.collection('exercises').create(payload);
 
       toast({
         title: 'Exercice ajouté',
@@ -85,7 +77,7 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
       console.error('Error creating exercise:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer l\'exercice',
+        description: 'Impossible de crÃ©er l\'exercice',
         variant: 'destructive',
       });
     } finally {
@@ -99,7 +91,7 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
         <DialogHeader>
           <DialogTitle>Enregistrer un nouvel exercice</DialogTitle>
           <DialogDescription>
-            Créez un exercice personnalisé pour votre bibliothèque
+            CrÃ©ez un exercice personnalisÃ© pour votre bibliothÃ¨que
           </DialogDescription>
         </DialogHeader>
 
@@ -121,7 +113,7 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Décrivez l'exercice..."
+              placeholder="DÃ©crivez l'exercice..."
               rows={3}
             />
           </div>
@@ -143,13 +135,13 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
               id="niveau"
               value={niveau}
               onChange={(e) => setNiveau(e.target.value)}
-              placeholder="Ex: débutant, intermédiaire, avancé"
+              placeholder="Ex: dÃ©butant, intermÃ©diaire, avancÃ©"
             />
           </div>
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'Création...' : 'Créer l\'exercice'}
+              {loading ? 'CrÃ©ation...' : 'CrÃ©er l\'exercice'}
             </Button>
             <Button
               type="button"
@@ -165,3 +157,4 @@ export const CreateExerciseDialog: React.FC<Props> = ({ open, onOpenChange, onSu
     </Dialog>
   );
 };
+

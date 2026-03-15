@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,27 +52,21 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
   const fetchHabits = async () => {
     try {
       // Get all habits
-      const { data: habitsData, error: habitsError } = await supabase
-        .from('habit')
-        .select('*')
-        .eq('owner', 'coach');
-
-      if (habitsError) throw habitsError;
+      const habitsData = await pb.collection('habits').getFullList({
+        filter: 'owner="coach"',
+      });
 
       // Get assignments for this client
-      const { data: assignmentsData, error: assignmentsError } = await supabase
-        .from('habit_assignment')
-        .select('*')
-        .eq('client_id', clientId);
-
-      if (assignmentsError) throw assignmentsError;
+      const assignmentsData = await pb.collection('habit_assignments').getFullList({
+        filter: `client_id="${clientId}"`,
+      });
 
       // Merge data
       const assignmentsMap = new Map(
-        assignmentsData?.map((a) => [a.habit_id, a]) || []
+        assignmentsData?.map((a: any) => [a.habit_id, a]) || []
       );
 
-      const mergedHabits = habitsData?.map((habit) => ({
+      const mergedHabits = habitsData?.map((habit: any) => ({
         ...habit,
         assignment: assignmentsMap.get(habit.id),
       })) || [];
@@ -94,27 +87,19 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
     if (!newHabitTitle.trim()) return;
 
     try {
-      const { data: newHabit, error: habitError } = await supabase
-        .from('habit')
-        .insert({
-          titre: newHabitTitle,
-          description: newHabitDesc,
-          owner: 'coach',
-          default_active: false,
-        })
-        .select()
-        .single();
-
-      if (habitError) throw habitError;
+      const newHabit = await pb.collection('habits').create({
+        titre: newHabitTitle,
+        description: newHabitDesc,
+        owner: 'coach',
+        default_active: false,
+      });
 
       // Assign to client
-      const { error: assignError } = await supabase.from('habit_assignment').insert({
+      await pb.collection('habit_assignments').create({
         habit_id: newHabit.id,
         client_id: clientId,
         active: true,
       });
-
-      if (assignError) throw assignError;
 
       toast({ title: 'Habitude créée avec succès' });
       setNewHabitTitle('');
@@ -136,33 +121,21 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
         // Deactivate
         const habit = habits.find((h) => h.id === habitId);
         if (habit?.assignment) {
-          const { error } = await supabase
-            .from('habit_assignment')
-            .update({ active: false })
-            .eq('id', habit.assignment.id);
-
-          if (error) throw error;
+          await pb.collection('habit_assignments').update(habit.assignment.id, { active: false });
         }
       } else {
         // Check if assignment exists
         const habit = habits.find((h) => h.id === habitId);
         if (habit?.assignment) {
           // Reactivate
-          const { error } = await supabase
-            .from('habit_assignment')
-            .update({ active: true })
-            .eq('id', habit.assignment.id);
-
-          if (error) throw error;
+          await pb.collection('habit_assignments').update(habit.assignment.id, { active: true });
         } else {
           // Create new assignment
-          const { error } = await supabase.from('habit_assignment').insert({
+          await pb.collection('habit_assignments').create({
             habit_id: habitId,
             client_id: clientId,
             active: true,
           });
-
-          if (error) throw error;
         }
       }
 
@@ -182,20 +155,15 @@ export const HabitManager: React.FC<Props> = ({ clientId }) => {
 
     try {
       // First delete all assignments
-      const { error: assignmentError } = await supabase
-        .from('habit_assignment')
-        .delete()
-        .eq('habit_id', habitToDelete);
-
-      if (assignmentError) throw assignmentError;
+      const assignments = await pb.collection('habit_assignments').getFullList({
+        filter: `habit_id="${habitToDelete}"`,
+      });
+      await Promise.all(
+        assignments.map((assignment: any) => pb.collection('habit_assignments').delete(assignment.id))
+      );
 
       // Then delete the habit
-      const { error: habitError } = await supabase
-        .from('habit')
-        .delete()
-        .eq('id', habitToDelete);
-
-      if (habitError) throw habitError;
+      await pb.collection('habits').delete(habitToDelete);
 
       toast({ 
         title: 'Habitude supprimée',
