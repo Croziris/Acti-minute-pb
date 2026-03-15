@@ -80,7 +80,7 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
       const workoutData = (sessionData as any).expand?.workout_id;
       const workoutExercises = workoutId
         ? await pb.collection('workout_exercises').getFullList({
-            filter: `workout_id="${workoutId}"`,
+            filter: `workout="${workoutId}"`,
             sort: 'order_index',
             expand: 'exercise_id',
           })
