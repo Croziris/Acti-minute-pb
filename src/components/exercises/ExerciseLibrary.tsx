@@ -36,6 +36,27 @@ interface ExerciseLibraryProps {
   selectionMode?: boolean;
 }
 
+const ensureStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string');
+};
+
+const normalizeExercise = (record: any): Exercise => ({
+  id: typeof record?.id === 'string' ? record.id : '',
+  libelle: typeof record?.libelle === 'string' ? record.libelle : '',
+  description: typeof record?.description === 'string' ? record.description : undefined,
+  categories: ensureStringArray(record?.categories),
+  groupes: ensureStringArray(record?.groupes),
+  niveau: typeof record?.niveau === 'string' ? record.niveau : undefined,
+  materiel: ensureStringArray(record?.materiel),
+  tags: ensureStringArray(record?.tags),
+  video_id: typeof record?.video_id === 'string' ? record.video_id : undefined,
+  video_provider: typeof record?.video_provider === 'string' ? record.video_provider : undefined,
+  youtube_url: typeof record?.youtube_url === 'string' ? record.youtube_url : undefined,
+  verified: Boolean(record?.verified),
+  created_by: typeof record?.created_by === 'string' ? record.created_by : undefined,
+});
+
 export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
   onSelectExercise,
   selectionMode = false
@@ -100,7 +121,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
   const fetchExercises = async () => {
     try {
       const records = await pb.collection('exercises').getFullList({ sort: 'libelle' });
-      setExercises(records as unknown as Exercise[]);
+      setExercises(records.map((record) => normalizeExercise(record)));
     } catch {
       toast({
         title: "Erreur",
@@ -150,7 +171,7 @@ export const ExerciseLibrary: React.FC<ExerciseLibraryProps> = ({
         verified: false,
         created_by: user?.id,
       });
-      setExercises(prev => [record as unknown as Exercise, ...prev]);
+      setExercises(prev => [normalizeExercise(record), ...prev]);
 
       setShowAddDialog(false);
       setNewExercise({
