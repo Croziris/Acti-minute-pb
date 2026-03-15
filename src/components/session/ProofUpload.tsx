@@ -2,8 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Camera, Upload, Check, X } from 'lucide-react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
@@ -23,6 +22,14 @@ export const ProofUpload: React.FC<ProofUploadProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(existingProofUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Impossible de lire le fichier"));
+      reader.readAsDataURL(file);
+    });
+
   const uploadFile = async (file: File) => {
     if (!user) return null;
 
@@ -38,45 +45,20 @@ export const ProofUpload: React.FC<ProofUploadProps> = ({
         throw new Error('Le fichier ne doit pas dépasser 3 Mo');
       }
 
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${sessionId}/${Date.now()}.${fileExt}`;
-
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('proofs')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get signed URL for the uploaded file
-      const { data: urlData, error: urlError } = await supabase.storage
-        .from('proofs')
-        .createSignedUrl(uploadData.path, 60 * 60 * 24 * 7); // 7 days
-
-      if (urlError) throw urlError;
+      const dataUrl = await fileToDataUrl(file);
 
       // Update session with proof URL
-      const { error: updateError } = await supabase
-        .from('session')
-        .update({ proof_media_url: urlData.signedUrl })
-        .eq('id', sessionId)
-        .eq('client_id', user.id);
+      await pb.collection('sessions').update(sessionId, { proof_media_url: dataUrl });
 
-      if (updateError) throw updateError;
-
-      setPreviewUrl(urlData.signedUrl);
-      onUploadComplete?.(urlData.signedUrl);
+      setPreviewUrl(dataUrl);
+      onUploadComplete?.(dataUrl);
       
       toast({
         title: "Preuve uploadée",
         description: "Votre photo de preuve a été sauvegardée avec succès.",
       });
 
-      return urlData.signedUrl;
+      return dataUrl;
 
     } catch (error) {
       console.error('Upload error:', error);
@@ -158,13 +140,7 @@ export const ProofUpload: React.FC<ProofUploadProps> = ({
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('session')
-        .update({ proof_media_url: null })
-        .eq('id', sessionId)
-        .eq('client_id', user.id);
-
-      if (error) throw error;
+      await pb.collection('sessions').update(sessionId, { proof_media_url: null });
 
       setPreviewUrl(null);
       onUploadComplete?.(null);

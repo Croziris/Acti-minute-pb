@@ -1,8 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { useQuery } from '@tanstack/react-query';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -13,14 +12,10 @@ const ClientArticles = () => {
   const { data: articles, isLoading } = useQuery({
     queryKey: ['articles'],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('get-notion-articles');
-      
-      if (error) {
-        console.error('Erreur récupération articles:', error);
-        throw error;
-      }
-      
-      return data;
+      const data = await pb.collection('articles').getFullList({
+        sort: '-published_at',
+      });
+      return data as any[];
     }
   });
 
@@ -30,7 +25,7 @@ const ClientArticles = () => {
         <div>
           <h1 className="text-2xl font-bold">Articles</h1>
           <p className="text-muted-foreground">
-            Découvrez nos articles et conseils
+            DÃ©couvrez nos articles et conseils
           </p>
         </div>
 
@@ -72,7 +67,7 @@ const ClientArticles = () => {
                         }
                       </span>
                       {article.author && (
-                        <span>• par {article.author}</span>
+                        <span>â€¢ par {article.author}</span>
                       )}
                     </div>
                     {article.categories && article.categories.length > 0 && (
@@ -99,3 +94,5 @@ const ClientArticles = () => {
 };
 
 export default ClientArticles;
+
+

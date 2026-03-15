@@ -1,9 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { useQuery } from '@tanstack/react-query';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,16 +17,11 @@ const ClientArticle = () => {
   const { data: article, isLoading, error } = useQuery({
     queryKey: ['article', slug],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('get-notion-article', {
-        body: { slug }
+      if (!slug) return null;
+      const data = await pb.collection('articles').getFirstListItem(`slug="${slug}"`, {
+        requestKey: null,
       });
-      
-      if (error) {
-        console.error('Erreur récupération article:', error);
-        throw error;
-      }
-      
-      return data;
+      return data as any;
     },
     enabled: !!slug
   });
@@ -59,7 +53,7 @@ const ClientArticle = () => {
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
-                Article non trouvé ou non disponible.
+                Article non trouvÃ© ou non disponible.
               </p>
             </CardContent>
           </Card>
@@ -138,3 +132,5 @@ const ClientArticle = () => {
 };
 
 export default ClientArticle;
+
+

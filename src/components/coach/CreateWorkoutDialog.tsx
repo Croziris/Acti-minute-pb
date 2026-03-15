@@ -12,8 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useToast } from '@/hooks/use-toast';
 import { Info } from 'lucide-react';
 
@@ -47,7 +46,7 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
   const handleNombreCircuitsChange = (value: string) => {
     setNombreCircuits(value);
     const num = value === 'custom' ? 3 : parseInt(value);
-    const newConfigs = Array.from({ length: num }, (_, i) => 
+    const newConfigs = Array.from({ length: num }, (_, i) =>
       circuitConfigs[i] || { rounds: '3', rest: '60' }
     );
     setCircuitConfigs(newConfigs);
@@ -91,23 +90,26 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
         rest: parseInt(c.rest)
       }));
 
-      const { error } = await supabase
-        .from('workout')
-        .insert({
-          titre: titre.trim(),
-          description: description.trim() || null,
-          duree_estimee: dureeEstimee ? parseInt(dureeEstimee) : null,
-          workout_type: workoutType,
-          session_type: sessionType,
-          nombre_circuits: workoutType === 'circuit' ? circuitConfigs.length : 1,
-          circuit_configs: workoutType === 'circuit' ? configs : null,
-          // Garder la compatibilité avec l'ancien système
-          circuit_rounds: workoutType === 'circuit' ? configs[0].rounds : null,
-          temps_repos_tours_seconds: workoutType === 'circuit' ? configs[0].rest : null,
-          is_template: true
-        });
+      const workoutPayload = {
+        titre: titre.trim(),
+        description: description.trim() || null,
+        duree_estimee: dureeEstimee ? parseInt(dureeEstimee) : null,
+        workout_type: workoutType,
+        session_type: sessionType,
+        nombre_circuits: workoutType === 'circuit' ? circuitConfigs.length : 1,
+        circuit_configs: workoutType === 'circuit' ? configs : null,
+        // Garder la compatibilité avec l'ancien système
+        circuit_rounds: workoutType === 'circuit' ? configs[0].rounds : null,
+        temps_repos_tours_seconds: workoutType === 'circuit' ? configs[0].rest : null,
+        is_template: true,
+        created_by: pb.authStore.record?.id ?? ''
+      };
 
-      if (error) throw error;
+      console.log('📤 Données envoyées à PocketBase:', JSON.stringify(workoutPayload, null, 2));
+
+      const result = await pb.collection('workout').create(workoutPayload);
+
+      console.log('✅ Résultat PocketBase:', JSON.stringify(result, null, 2));
 
       toast({
         title: "Séance créée",
@@ -118,10 +120,10 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      console.error('Error creating workout:', error);
+      console.error('❌ Erreur PocketBase:', JSON.stringify(error?.response?.data));
       toast({
         title: "Erreur",
-        description: "Impossible de créer la séance",
+        description: error?.response?.message || error?.message || "Erreur création séance",
         variant: "destructive"
       });
     } finally {
@@ -197,9 +199,9 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
               Type de section
               <Info className="h-4 w-4 text-muted-foreground" />
             </Label>
-            
-            <Select 
-              value={sessionType} 
+
+            <Select
+              value={sessionType}
               onValueChange={(value: 'warmup' | 'main' | 'cooldown') => setSessionType(value)}
             >
               <SelectTrigger id="session-type">
@@ -217,7 +219,7 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
                     </div>
                   </div>
                 </SelectItem>
-                
+
                 <SelectItem value="main">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">💪</span>
@@ -229,7 +231,7 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
                     </div>
                   </div>
                 </SelectItem>
-                
+
                 <SelectItem value="cooldown">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">🧘</span>
@@ -243,11 +245,11 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
                 </SelectItem>
               </SelectContent>
             </Select>
-            
+
             <p className="text-xs text-muted-foreground">
-              {sessionType === 'warmup' && '🔥 Cette séance sera proposée en début d\'entraînement pour préparer le corps.'}
-              {sessionType === 'main' && '💪 Cette séance constitue l\'effort principal avec feedbacks RPE, difficulté et plaisir.'}
-              {sessionType === 'cooldown' && '🧘 Cette séance sera proposée en fin d\'entraînement (le client peut la passer).'}
+              {sessionType === 'warmup' && "🔥 Cette séance sera proposée en début d'entraînement pour préparer le corps."}
+              {sessionType === 'main' && "💪 Cette séance constitue l'effort principal avec feedbacks RPE, difficulté et plaisir."}
+              {sessionType === 'cooldown' && "🧘 Cette séance sera proposée en fin d'entraînement (le client peut la passer)."}
             </p>
           </div>
 
@@ -279,7 +281,7 @@ export const CreateWorkoutDialog: React.FC<Props> = ({ open, onOpenChange, onSuc
                     value={circuitConfigs.length}
                     onChange={(e) => {
                       const num = parseInt(e.target.value) || 1;
-                      const newConfigs = Array.from({ length: num }, (_, i) => 
+                      const newConfigs = Array.from({ length: num }, (_, i) =>
                         circuitConfigs[i] || { rounds: '3', rest: '60' }
                       );
                       setCircuitConfigs(newConfigs);

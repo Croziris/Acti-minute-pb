@@ -7,8 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, GripVertical, ChevronUp, ChevronDown, Dumbbell } from 'lucide-react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useToast } from '@/hooks/use-toast';
 import { ExerciseLibrary } from '@/components/exercises/ExerciseLibrary';
 import {
@@ -70,20 +69,33 @@ export const WorkoutEditor: React.FC<Props> = ({
   const fetchExercises = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('workout_exercise')
-        .select(`
-          *,
-          exercise:exercise_id (
-            libelle,
-            description
-          )
-        `)
-        .eq('workout_id', workoutId)
-        .order('order_index', { ascending: true });
+      const records = await pb.collection('workout_exercises').getFullList({
+        filter: `workout_id = "${workoutId}"`,
+        sort: 'order_index',
+        expand: 'exercise_id',
+      });
 
-      if (error) throw error;
-      setExercises(data || []);
+      const normalized = records.map((record: any) => ({
+        id: record.id,
+        exercise_id: record.exercise_id,
+        order_index: record.order_index ?? 0,
+        series: record.series ?? null,
+        reps: record.reps ?? null,
+        temps_seconds: record.temps_seconds ?? null,
+        charge_cible: record.charge_cible ?? null,
+        tempo: record.tempo ?? null,
+        temps_repos_seconds: record.temps_repos_seconds ?? null,
+        rpe_cible: record.rpe_cible ?? null,
+        couleur_elastique: record.couleur_elastique ?? null,
+        circuit_number: record.circuit_number || 1,
+        tips: record.tips ?? null,
+        exercise: {
+          libelle: record.expand?.exercise_id?.libelle || '',
+          description: record.expand?.exercise_id?.description ?? null,
+        },
+      })) as WorkoutExercise[];
+
+      setExercises(normalized);
     } catch (error: any) {
       console.error('Error fetching exercises:', error);
       toast({
@@ -102,18 +114,14 @@ export const WorkoutEditor: React.FC<Props> = ({
 
   const handleAddExercise = async (exercise: any) => {
     try {
-      const { error } = await supabase
-        .from('workout_exercise')
-        .insert({
-          workout_id: workoutId,
-          exercise_id: exercise.id,
-          order_index: exercises.length,
-          series: workoutType === 'classic' ? 3 : null,
-          reps: 10,
-          circuit_number: selectedCircuitForAdd,
-        });
-
-      if (error) throw error;
+      await pb.collection('workout_exercises').create({
+        workout_id: workoutId,
+        exercise_id: exercise.id,
+        order_index: exercises.length,
+        series: workoutType === 'classic' ? 3 : null,
+        reps: 10,
+        circuit_number: selectedCircuitForAdd,
+      });
 
       toast({
         title: "Exercice ajouté",
@@ -139,12 +147,7 @@ export const WorkoutEditor: React.FC<Props> = ({
 
   const handleUpdateExercise = async (exerciseId: string, field: string, value: any) => {
     try {
-      const { error } = await supabase
-        .from('workout_exercise')
-        .update({ [field]: value })
-        .eq('id', exerciseId);
-
-      if (error) throw error;
+      await pb.collection('workout_exercises').update(exerciseId, { [field]: value });
 
       setExercises(prev => prev.map(ex => 
         ex.id === exerciseId ? { ...ex, [field]: value } : ex
@@ -161,12 +164,7 @@ export const WorkoutEditor: React.FC<Props> = ({
 
   const handleDeleteExercise = async (exerciseId: string) => {
     try {
-      const { error } = await supabase
-        .from('workout_exercise')
-        .delete()
-        .eq('id', exerciseId);
-
-      if (error) throw error;
+      await pb.collection('workout_exercises').delete(exerciseId);
 
       toast({
         title: "Exercice supprimé",
@@ -197,10 +195,7 @@ export const WorkoutEditor: React.FC<Props> = ({
     try {
       await Promise.all(
         newExercises.map((ex, idx) =>
-          supabase
-            .from('workout_exercise')
-            .update({ order_index: idx })
-            .eq('id', ex.id)
+          pb.collection('workout_exercises').update(ex.id, { order_index: idx })
         )
       );
 

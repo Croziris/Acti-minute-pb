@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Dialog,
@@ -60,37 +59,27 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
       setLoading(true);
       
       // Récupérer tous les sportif⸱ve
-      const { data: allClients, error: clientsError } = await supabase
-        .from('app_user')
-        .select('id, handle, avatar_url')
-        .eq('role', 'spotif.ve');
-
-      if (clientsError) throw clientsError;
+      const allClients = await pb.collection('users').getFullList({
+        filter: `role="client" || role="sportif.ve" || role="spotif.ve"`,
+        sort: 'handle',
+      });
 
       // Récupérer tous les programmes avec les infos des coaches
-      const { data: allPrograms, error: programsError } = await supabase
-        .from('program')
-        .select(`
-          client_id,
-          coach_id,
-          coach:coach_id (
-            handle
-          )
-        `);
-
-      if (programsError) throw programsError;
+      const allPrograms = await pb.collection('programs').getFullList({
+        expand: 'coach_id',
+      });
 
       // Créer une map des clients avec leur coach
       const clientCoachMap = new Map();
       allPrograms?.forEach((p: any) => {
         clientCoachMap.set(p.client_id, {
           coach_id: p.coach_id,
-          coach_handle: p.coach?.handle || 'Coach inconnu'
+          coach_handle: p.expand?.coach_id?.handle || p.expand?.coach_id?.name || 'Coach inconnu'
         });
       });
 
       // Enrichir les clients avec les infos d'assignation
-      const enrichedClients = allClients?.map((c) => {
+      const enrichedClients = allClients?.map((c: any) => {
         const assignment = clientCoachMap.get(c.id);
         return {
           ...c,
@@ -114,22 +103,26 @@ export const AssignClientDialog: React.FC<Props> = ({ open, onOpenChange, onSucc
   };
 
   const handleAssignClient = async (clientId: string) => {
+    if (!user) return;
+
     try {
       setLoading(true);
 
-      const { data, error } = await supabase.functions.invoke('link-client-to-coach', {
-        body: { client_id: clientId },
+      const existingPrograms = await pb.collection('programs').getFullList({
+        filter: `client_id="${clientId}"`,
+        sort: '-created',
       });
 
-      if (error) throw error;
-
-      if (data?.error) {
-        toast({
-          title: 'Erreur',
-          description: data.error,
-          variant: 'destructive',
+      if (existingPrograms.length > 0) {
+        await pb.collection('programs').update(existingPrograms[0].id, {
+          coach_id: user.id,
         });
-        return;
+      } else {
+        await pb.collection('programs').create({
+          client_id: clientId,
+          coach_id: user.id,
+          titre: 'Programme personnalisé',
+        });
       }
 
       toast({

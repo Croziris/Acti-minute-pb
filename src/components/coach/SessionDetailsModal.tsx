@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, CheckCircle2, XCircle, Dumbbell, Star, MessageSquare, AlertCircle, Layers } from 'lucide-react';
@@ -92,99 +91,135 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
       setLoading(true);
 
       // Récupérer les détails de la séance (combinée ou simple)
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('session')
-        .select(`
-          id,
-          statut,
-          date_demarree,
-          date_terminee,
-          commentaire_fin,
-          workout_id,
-          session_workout (
-            order_index,
-            workout (
-              id,
-              titre,
-              workout_type,
-              session_type,
-              circuit_rounds,
-              workout_exercise (
-                exercise_id,
-                order_index,
-                series,
-                reps,
-                charge_cible,
-                rpe_cible,
-                exercise (
-                  libelle
-                )
-              )
-            )
-          )
-        `)
-        .eq('id', sessionId)
-        .single();
+      const sessionData = await pb.collection('sessions').getOne(sessionId, {
+        expand: 'workout_id',
+      });
 
-      if (sessionError) throw sessionError;
+      const workoutIds = Array.isArray((sessionData as any).workout_ids)
+        ? (sessionData as any).workout_ids
+        : ((sessionData as any).workout_id ? [(sessionData as any).workout_id] : []);
 
-      // Récupérer les set_logs
-      const { data: logsData, error: logsError } = await supabase
-        .from('set_log')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('exercise_id')
-        .order('index_serie');
+      const workouts = await Promise.all(
+        workoutIds.map(async (workoutId: string) => {
+          const baseWorkout = (sessionData as any).expand?.workout_id?.id === workoutId
+            ? (sessionData as any).expand.workout_id
+            : await pb.collection('workout').getOne(workoutId);
 
-      if (logsError) throw logsError;
+          const workoutExercises = await pb.collection('workout_exercises').getFullList({
+            filter: `workout_id="${workoutId}"`,
+            sort: 'order_index',
+            expand: 'exercise_id',
+          });
 
-      // Récupérer les feedbacks
-      const { data: feedbacksData, error: feedbacksError } = await supabase
-        .from('exercise_feedback')
-        .select('*')
-        .eq('session_id', sessionId);
+          return {
+            id: baseWorkout.id,
+            titre: (baseWorkout as any).titre,
+            workout_type: (baseWorkout as any).workout_type,
+            session_type: (baseWorkout as any).session_type,
+            circuit_rounds: (baseWorkout as any).circuit_rounds ?? null,
+            workout_exercise: workoutExercises.map((we: any) => ({
+              exercise_id: we.exercise_id,
+              order_index: we.order_index,
+              series: we.series ?? null,
+              reps: we.reps ?? null,
+              charge_cible: we.charge_cible ?? null,
+              rpe_cible: we.rpe_cible ?? null,
+              exercise: {
+                libelle: we.expand?.exercise_id?.libelle || '',
+              },
+            })),
+          };
+        })
+      );
 
-      if (feedbacksError) throw feedbacksError;
+      const progressData = await pb.collection('session_progress').getFullList({
+        filter: `session_id="${sessionId}"`,
+        sort: 'exercise_id,index_serie',
+      });
 
-      // Séparer les différents types de feedbacks
-      const exerciseFeedbacks = (feedbacksData || []).filter(f => f.exercise_id !== null);
-      const circuitFbs = (feedbacksData || []).filter(f => f.feedback_type === 'circuit' && f.exercise_id === null);
-      const finalFb = (feedbacksData || []).find(f => f.feedback_type === 'session' && f.exercise_id === null);
+      const logsData: SetLog[] = progressData
+        .filter((item: any) => item.progress_type === 'set_log')
+        .map((item: any) => ({
+          id: item.id,
+          exercise_id: item.exercise_id,
+          index_serie: item.index_serie,
+          reps: item.reps ?? null,
+          charge: item.charge ?? null,
+          rpe: item.rpe ?? null,
+          commentaire: item.commentaire ?? null,
+        }));
 
-      // Transformer les données pour supporter les sessions combinées
-      const isCombined = sessionData.session_workout && sessionData.session_workout.length > 0;
-      
-      let transformedSession;
+      const feedbacksData: ExerciseFeedback[] = progressData
+        .filter((item: any) => item.progress_type === 'feedback')
+        .map((item: any) => ({
+          id: item.id,
+          exercise_id: item.exercise_id ?? null,
+          circuit_number: item.circuit_number ?? null,
+          feedback_type: item.feedback_type || 'session',
+          rpe: item.rpe ?? null,
+          plaisir_0_10: item.plaisir_0_10 ?? null,
+          difficulte_0_10: item.difficulte_0_10 ?? null,
+        }));
+
+      const exerciseFeedbacks = feedbacksData.filter((f) => f.exercise_id !== null);
+      const circuitFbs = feedbacksData.filter((f) => f.feedback_type === 'circuit' && f.exercise_id === null);
+      const finalFb = feedbacksData.find((f) => f.feedback_type === 'session' && f.exercise_id === null);
+
+      const isCombined = workouts.length > 1;
+      let transformedSession: SessionDetails;
       if (isCombined) {
-        // Session combinée : agréger tous les workouts
-        const workouts = sessionData.session_workout
-          .sort((a: any, b: any) => a.order_index - b.order_index)
-          .map((sw: any) => sw.workout);
-        
         transformedSession = {
-          ...sessionData,
+          id: sessionData.id,
+          statut: (sessionData as any).statut,
+          date_demarree: (sessionData as any).date_demarree ?? null,
+          date_terminee: (sessionData as any).date_terminee ?? null,
+          commentaire_fin: (sessionData as any).commentaire_fin ?? null,
           isCombined: true,
-          workouts: workouts,
+          workouts: workouts.map((w) => ({
+            id: w.id,
+            titre: w.titre,
+            workout_type: w.workout_type,
+            session_type: w.session_type,
+            circuit_rounds: w.circuit_rounds,
+          })),
           workout: {
             titre: 'Session combinée',
             workout_type: 'combined',
             circuit_rounds: null,
-            workout_exercises: workouts.flatMap((w: any) => 
+            workout_exercises: workouts.flatMap((w) =>
               (w.workout_exercise || []).map((we: any) => ({
                 ...we,
                 workout_id: w.id,
                 workout_titre: w.titre,
-                workout_session_type: w.session_type
+                workout_session_type: w.session_type,
               }))
-            )
-          }
+            ),
+          },
         };
       } else {
-        transformedSession = sessionData;
+        const workout = workouts[0] || {
+          titre: '',
+          workout_type: '',
+          circuit_rounds: null,
+          workout_exercise: [],
+        };
+        transformedSession = {
+          id: sessionData.id,
+          statut: (sessionData as any).statut,
+          date_demarree: (sessionData as any).date_demarree ?? null,
+          date_terminee: (sessionData as any).date_terminee ?? null,
+          commentaire_fin: (sessionData as any).commentaire_fin ?? null,
+          workout: {
+            titre: workout.titre,
+            workout_type: workout.workout_type,
+            circuit_rounds: workout.circuit_rounds,
+            workout_exercises: workout.workout_exercise || [],
+          },
+        };
       }
 
-      setSession(transformedSession as any);
-      setSetLogs(logsData || []);
+      setSession(transformedSession);
+      setSetLogs(logsData);
       setFeedbacks(exerciseFeedbacks);
       setCircuitFeedbacks(circuitFbs);
       setFinalFeedback(finalFb || null);

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Circle, History } from 'lucide-react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
@@ -63,16 +62,11 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
       setLoading(true);
 
       // Fetch assigned routines
-      const { data: assignedRoutines, error: assignError } = await supabase
-        .from('client_routines')
-        .select('routine_id')
-        .eq('client_id', clientId)
-        .eq('assigned_by', user.id)
-        .eq('active', true);
+      const assignedRoutines = await pb.collection('client_routines').getFullList({
+        filter: `client_id="${clientId}" && assigned_by="${user.id}" && active=true`,
+      });
 
-      if (assignError) throw assignError;
-
-      const routineIds = assignedRoutines?.map(ar => ar.routine_id) || [];
+      const routineIds = assignedRoutines?.map((ar: any) => ar.routine_id) || [];
 
       if (routineIds.length === 0) {
         setRoutines([]);
@@ -80,36 +74,41 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
       }
 
       // Fetch routines details
-      const { data: routinesData, error: routinesError } = await supabase
-        .from('routines')
-        .select('id, title')
-        .in('id', routineIds);
-
-      if (routinesError) throw routinesError;
+      const routineFilter = routineIds.map((id) => `id="${id}"`).join(' || ');
+      const routinesData = await pb.collection('routines').getFullList({
+        filter: routineFilter,
+      });
 
       // Fetch tracking data
-      const { data: trackingData, error: trackingError } = await supabase
-        .from('routine_tracking')
-        .select('*')
-        .eq('client_id', clientId)
-        .in('routine_id', routineIds)
-        .in('date', dates);
-
-      if (trackingError) throw trackingError;
+      const trackingData = await pb.collection('session_progress').getFullList({
+        filter: `client_id="${clientId}"`,
+      });
 
       // Map tracking to routines
       const trackingMap: Record<string, any[]> = {};
-      trackingData?.forEach(track => {
-        if (!trackingMap[track.routine_id]) {
-          trackingMap[track.routine_id] = [];
+      trackingData?.forEach((track: any) => {
+        const routineId = track.routine_id;
+        const date = typeof track.date === 'string'
+          ? track.date
+          : (typeof track.completed_at === 'string' ? track.completed_at.split('T')[0] : null);
+        const completed = typeof track.completed === 'boolean'
+          ? track.completed
+          : track.status === 'completed';
+
+        if (!routineId || !date || !routineIds.includes(routineId) || !dates.includes(date)) {
+          return;
         }
-        trackingMap[track.routine_id].push({
-          date: track.date,
-          completed: track.completed
+
+        if (!trackingMap[routineId]) {
+          trackingMap[routineId] = [];
+        }
+        trackingMap[routineId].push({
+          date,
+          completed
         });
       });
 
-      const formattedRoutines: RoutineWithTracking[] = routinesData?.map(routine => ({
+      const formattedRoutines: RoutineWithTracking[] = routinesData?.map((routine: any) => ({
         id: routine.id,
         title: routine.title,
         tracking: trackingMap[routine.id] || []
@@ -160,17 +159,18 @@ export const ClientRoutineStats: React.FC<ClientRoutineStatsProps> = ({ clientId
 
   const fetchRoutineHistory = async (routineId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('routine_tracking')
-        .select('date')
-        .eq('client_id', clientId)
-        .eq('routine_id', routineId)
-        .eq('completed', true)
-        .order('date', { ascending: false });
+      const data = await pb.collection('session_progress').getFullList({
+        filter: `client_id="${clientId}"`,
+        sort: '-created',
+      });
 
-      if (error) throw error;
-
-      const dates = data?.map(item => new Date(item.date)) || [];
+      const dates = data
+        ?.filter((item: any) => {
+          const completed = typeof item.completed === 'boolean' ? item.completed : item.status === 'completed';
+          return item.routine_id === routineId && completed;
+        })
+        .map((item: any) => new Date(item.date || item.completed_at))
+        .filter((date: Date) => !Number.isNaN(date.getTime())) || [];
       setHistoryDates(dates);
       setSelectedRoutineHistory(routineId);
     } catch (err: any) {

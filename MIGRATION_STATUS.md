@@ -1,6 +1,6 @@
 # MIGRATION STATUS
 
-Date: 2026-03-14
+Date: 2026-03-15
 
 ## Etat global
 - Suppression de Supabase terminee (dossiers + integration + dependances @supabase/*).
@@ -11,7 +11,6 @@ Date: 2026-03-14
 
 ## Fichiers ajoutes
 - src/lib/pocketbase.ts
-- src/lib/supabase-stub.ts
 
 ## Fichiers modifies
 - .env
@@ -102,41 +101,5 @@ Date: 2026-03-14
 - supabase/migrations/20251102175220_ad728c7c-1db5-4d55-bb99-fe2da1db5b1b.sql
 
 ## TODO restants
-- Remplacer les imports `@/lib/supabase-stub` par la vraie integration PocketBase dans les fichiers ci-dessous.
-- src\components\client\CircuitTrainingView.tsx
-- src\components\client\SessionHistoryModal.tsx
-- src\components\coach\AssignClientDialog.tsx
-- src\components\coach\AssignRoutinesDialog.tsx
-- src\components\coach\AssignWorkoutDialog.tsx
-- src\components\coach\ClientHabitsTracker.tsx
-- src\components\coach\ClientRoutineAssignment.tsx
-- src\components\coach\ClientRoutineStats.tsx
-- src\components\coach\CombinedWorkoutsBuilder.tsx
-- src\components\coach\CreateExerciseDialog.tsx
-- src\components\coach\CreateRoutineDialog.tsx
-- src\components\coach\CreateWorkoutDialog.tsx
-- src\components\coach\HabitManager.tsx
-- src\components\coach\ProgramBuilder.tsx
-- src\components\coach\SessionDetailsModal.tsx
-- src\components\coach\WorkoutEditor.tsx
-- src\components\exercises\EditExerciseDialog.tsx
-- src\components\exercises\ExerciseLibrary.tsx
-- src\components\session\ProofUpload.tsx
-- src\components\session\SessionCompleteCard.tsx
-- src\contexts\AuthContext.tsx
-- src\hooks\useCoachClients.ts
-- src\hooks\useHabits.ts
-- src\hooks\useOfflineSync.ts
-- src\hooks\useRoutines.ts
-- src\hooks\useSessionData.ts
-- src\hooks\useWeeklyProgram.ts
-- src\pages\client\ClientArticle.tsx
-- src\pages\client\ClientArticles.tsx
-- src\pages\client\ClientHome.tsx
-- src\pages\client\ClientSession.tsx
-- src\pages\coach\CoachClient.tsx
-- src\pages\coach\CoachRoutines.tsx
-- src\pages\coach\CoachWorkouts.tsx
-- Reconnecter l authentification dans `src/contexts/AuthContext.tsx` via PocketBase (stub actuel: `{ user: null, loading/isLoading: false }`).
-- Reconnecter les hooks de donnees stubs (`useCoachClients`, `useHabits`, `useOfflineSync`, `useRoutines`, `useSessionData`, `useWeeklyProgram`).
-- Supprimer `src/lib/supabase-stub.ts` une fois la migration PocketBase completee.
+- Aucun import du stub Supabase restant dans `src/`.
+- Finaliser la suppression du fichier stub legacy non utilise dans `src/lib/`.

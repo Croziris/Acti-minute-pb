@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, CheckCircle2, XCircle, Star } from 'lucide-react';
@@ -73,55 +72,72 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
     try {
       setLoading(true);
 
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('session')
-        .select(`
-          id,
-          statut,
-          date_demarree,
-          date_terminee,
-          commentaire_fin,
-          workout:workout_id (
-            titre,
-            workout_type,
-            circuit_rounds,
-            workout_exercises:workout_exercise (
-              exercise_id,
-              order_index,
-              series,
-              reps,
-              charge_cible,
-              rpe_cible,
-              exercise:exercise_id (
-                libelle
-              )
-            )
-          )
-        `)
-        .eq('id', sessionId)
-        .single();
+      const sessionData = await pb.collection('sessions').getOne(sessionId, {
+        expand: 'workout_id',
+      });
 
-      if (sessionError) throw sessionError;
+      const workoutId = (sessionData as any).workout_id;
+      const workoutData = (sessionData as any).expand?.workout_id;
+      const workoutExercises = workoutId
+        ? await pb.collection('workout_exercises').getFullList({
+            filter: `workout_id="${workoutId}"`,
+            sort: 'order_index',
+            expand: 'exercise_id',
+          })
+        : [];
 
-      const { data: logsData, error: logsError } = await supabase
-        .from('set_log')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('exercise_id')
-        .order('index_serie');
+      const progressData = await pb.collection('session_progress').getFullList({
+        filter: `session_id="${sessionId}"`,
+        sort: 'exercise_id,index_serie',
+      });
 
-      if (logsError) throw logsError;
+      const logsData: SetLog[] = progressData
+        .filter((item: any) => item.progress_type === 'set_log')
+        .map((item: any) => ({
+          id: item.id,
+          exercise_id: item.exercise_id,
+          index_serie: item.index_serie,
+          reps: item.reps ?? null,
+          charge: item.charge ?? null,
+          rpe: item.rpe ?? null,
+          commentaire: item.commentaire ?? null,
+        }));
 
-      const { data: feedbacksData, error: feedbacksError } = await supabase
-        .from('exercise_feedback')
-        .select('*')
-        .eq('session_id', sessionId);
+      const feedbacksData: ExerciseFeedback[] = progressData
+        .filter((item: any) => item.progress_type === 'feedback' && item.exercise_id)
+        .map((item: any) => ({
+          exercise_id: item.exercise_id,
+          plaisir_0_10: item.plaisir_0_10 ?? null,
+          difficulte_0_10: item.difficulte_0_10 ?? null,
+        }));
 
-      if (feedbacksError) throw feedbacksError;
+      const normalizedSession: SessionDetails = {
+        id: sessionData.id,
+        statut: (sessionData as any).statut,
+        date_demarree: (sessionData as any).date_demarree ?? null,
+        date_terminee: (sessionData as any).date_terminee ?? null,
+        commentaire_fin: (sessionData as any).commentaire_fin ?? null,
+        workout: {
+          titre: workoutData?.titre || '',
+          workout_type: workoutData?.workout_type || '',
+          circuit_rounds: workoutData?.circuit_rounds ?? null,
+          workout_exercises: workoutExercises.map((item: any) => ({
+            exercise_id: item.exercise_id,
+            order_index: item.order_index,
+            series: item.series ?? null,
+            reps: item.reps ?? null,
+            charge_cible: item.charge_cible ?? null,
+            rpe_cible: item.rpe_cible ?? null,
+            exercise: {
+              libelle: item.expand?.exercise_id?.libelle || '',
+            },
+          })),
+        },
+      };
 
-      setSession(sessionData as any);
-      setSetLogs(logsData || []);
-      setFeedbacks(feedbacksData || []);
+      setSession(normalizedSession);
+      setSetLogs(logsData);
+      setFeedbacks(feedbacksData);
     } catch (error) {
       console.error('Error fetching session details:', error);
     } finally {

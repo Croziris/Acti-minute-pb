@@ -10,8 +10,7 @@ import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useNavigate } from 'react-router-dom';
 import { SessionHistoryModal } from '@/components/client/SessionHistoryModal';
 import { useAuth } from '@/contexts/AuthContext';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useQuery } from '@tanstack/react-query';
 
 const ClientHome = () => {
@@ -27,30 +26,28 @@ const ClientHome = () => {
     queryKey: ['past-sessions', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
-        .from('session')
-        .select(`
-          id,
-          index_num,
-          statut,
-          date_terminee,
-          workout:workout_id (
-            titre,
-            description,
-            duree_estimee
-          ),
-          week_plan:week_plan_id (
-            start_date,
-            end_date
-          )
-        `)
-        .eq('client_id', user.id)
-        .in('statut', ['done', 'skipped'])
-        .order('date_terminee', { ascending: false })
-        .limit(20);
+      const records = await pb.collection('sessions').getFullList({
+        filter: `client_id="${user.id}" && (statut="done" || statut="skipped")`,
+        sort: '-date_terminee',
+        expand: 'workout_id,week_plan_id',
+      });
 
-      if (error) throw error;
-      return data || [];
+      return records.slice(0, 20).map((record: any) => ({
+        ...record,
+        workout: record.expand?.workout_id
+          ? {
+              titre: record.expand.workout_id.titre,
+              description: record.expand.workout_id.description,
+              duree_estimee: record.expand.workout_id.duree_estimee,
+            }
+          : null,
+        week_plan: record.expand?.week_plan_id
+          ? {
+              start_date: record.expand.week_plan_id.start_date,
+              end_date: record.expand.week_plan_id.end_date,
+            }
+          : null,
+      }));
     },
     enabled: !!user
   });

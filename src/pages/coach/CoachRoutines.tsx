@@ -4,8 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Users, Play } from 'lucide-react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { CreateRoutineDialog } from '@/components/coach/CreateRoutineDialog';
@@ -43,13 +42,10 @@ const CoachRoutines = () => {
     try {
       setLoading(true);
 
-      const { data: routinesData, error } = await supabase
-        .from('routines')
-        .select('*')
-        .eq('coach_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const routinesData = await pb.collection('routines').getFullList({
+        filter: `coach_id="${user.id}"`,
+        sort: '-created',
+      });
 
       // Fetch exercise counts for exercise-type routines
       const exerciseRoutineIds = routinesData
@@ -59,19 +55,14 @@ const CoachRoutines = () => {
       let exerciseCounts: Record<string, number> = {};
 
       if (exerciseRoutineIds.length > 0) {
-        const { data: exercisesData, error: exError } = await supabase
-          .from('routine_exercises')
-          .select('routine_id')
-          .in('routine_id', exerciseRoutineIds);
-
-        if (!exError && exercisesData) {
-          exercisesData.forEach(ex => {
-            exerciseCounts[ex.routine_id] = (exerciseCounts[ex.routine_id] || 0) + 1;
-          });
-        }
+        const filter = exerciseRoutineIds.map((id) => `routine_id="${id}"`).join(' || ');
+        const exercisesData = await pb.collection('routine_exercises').getFullList({ filter });
+        exercisesData.forEach((ex: any) => {
+          exerciseCounts[ex.routine_id] = (exerciseCounts[ex.routine_id] || 0) + 1;
+        });
       }
 
-      const formattedRoutines: Routine[] = routinesData?.map(routine => ({
+      const formattedRoutines: Routine[] = routinesData?.map((routine: any) => ({
         ...routine,
         tips: Array.isArray(routine.tips) ? routine.tips as string[] : [],
         exerciseCount: exerciseCounts[routine.id] || 0
@@ -90,12 +81,7 @@ const CoachRoutines = () => {
     if (!routineToDelete) return;
 
     try {
-      const { error } = await supabase
-        .from('routines')
-        .delete()
-        .eq('id', routineToDelete);
-
-      if (error) throw error;
+      await pb.collection('routines').delete(routineToDelete);
 
       toast.success('Routine supprimée avec succès');
       setDeleteDialogOpen(false);

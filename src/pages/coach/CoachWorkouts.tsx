@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { CoachLayout } from '@/components/layout/CoachLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Clock, Dumbbell, Edit, Trash2, Copy, ClipboardList, ArrowLeft } from 'lucide-react';
-// TODO: remplacer par PocketBase
-import { supabase } from '@/lib/supabase-stub';
+import { pb } from '@/lib/pocketbase';
 import { useToast } from '@/hooks/use-toast';
 import { CreateWorkoutDialog } from '@/components/coach/CreateWorkoutDialog';
 import { WorkoutEditor } from '@/components/coach/WorkoutEditor';
@@ -43,40 +42,37 @@ const CoachWorkouts = () => {
   const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
   const { toast } = useToast();
 
+  const mapWorkoutRecord = (workout: any, exerciseCount: number): Workout => ({
+    id: workout.id,
+    titre: workout.titre,
+    description: workout.description ?? null,
+    duree_estimee: workout.duree_estimee ?? null,
+    workout_type: (workout.workout_type || 'classic') as 'classic' | 'circuit',
+    session_type: (workout.session_type || 'main') as 'warmup' | 'main' | 'cooldown',
+    circuit_rounds: workout.circuit_rounds ?? null,
+    nombre_circuits: workout.nombre_circuits || 1,
+    circuit_configs: workout.circuit_configs || [{ rounds: 3, rest: 60 }],
+    created_at: workout.created_at || workout.created || '',
+    exercise_count: exerciseCount,
+  });
+
   const fetchWorkouts = async () => {
     try {
       setLoading(true);
-      
-      // Récupérer les workouts templates avec le nombre d'exercices
-      const { data: workoutsData, error: workoutsError } = await supabase
-        .from('workout')
-        .select('*')
-        .eq('is_template', true)
-        .order('created_at', { ascending: false });
 
-      if (workoutsError) throw workoutsError;
+      const workoutsData = await pb.collection('workout').getFullList({
+        filter: 'is_template = true',
+        sort: '-created',
+      });
 
-      // Pour chaque workout, compter les exercices
       const workoutsWithCount = await Promise.all(
-        (workoutsData || []).map(async (workout) => {
-          const { count } = await supabase
-            .from('workout_exercise')
-            .select('*', { count: 'exact', head: true })
-            .eq('workout_id', workout.id);
-          
-          return {
-            id: workout.id,
-            titre: workout.titre,
-            description: workout.description,
-            duree_estimee: workout.duree_estimee,
-            workout_type: (workout.workout_type || 'classic') as 'classic' | 'circuit',
-            session_type: (workout.session_type || 'main') as 'warmup' | 'main' | 'cooldown',
-            circuit_rounds: workout.circuit_rounds,
-            nombre_circuits: workout.nombre_circuits || 1,
-            circuit_configs: workout.circuit_configs || [{ rounds: 3, rest: 60 }],
-            created_at: workout.created_at,
-            exercise_count: count || 0
-          } as Workout;
+        workoutsData.map(async (workout) => {
+          const count = await pb.collection('workout_exercises').getList(1, 1, {
+            filter: `workout_id = "${workout.id}"`,
+            skipTotal: false,
+          });
+
+          return mapWorkoutRecord(workout, count.totalItems);
         })
       );
 
@@ -85,7 +81,7 @@ const CoachWorkouts = () => {
       console.error('Error fetching workouts:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les séances",
+        description: error?.response?.message || error?.message || "Impossible de charger les séances",
         variant: "destructive"
       });
     } finally {
@@ -101,21 +97,16 @@ const CoachWorkouts = () => {
     if (!workoutToDelete) return;
 
     try {
-      // Supprimer d'abord les exercices du workout
-      const { error: exercisesError } = await supabase
-        .from('workout_exercise')
-        .delete()
-        .eq('workout_id', workoutToDelete);
+      const workoutExercises = await pb.collection('workout_exercises').getFullList({
+        filter: `workout_id = "${workoutToDelete}"`,
+        fields: 'id',
+      });
 
-      if (exercisesError) throw exercisesError;
+      await Promise.all(
+        workoutExercises.map((exercise) => pb.collection('workout_exercises').delete(exercise.id))
+      );
 
-      // Puis supprimer le workout
-      const { error: workoutError } = await supabase
-        .from('workout')
-        .delete()
-        .eq('id', workoutToDelete);
-
-      if (workoutError) throw workoutError;
+      await pb.collection('workout').delete(workoutToDelete);
 
       toast({
         title: "Séance supprimée",
@@ -127,7 +118,7 @@ const CoachWorkouts = () => {
       console.error('Error deleting workout:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer la séance",
+        description: error?.response?.message || error?.message || "Impossible de supprimer la séance",
         variant: "destructive"
       });
     } finally {
@@ -138,61 +129,48 @@ const CoachWorkouts = () => {
 
   const handleDuplicateWorkout = async (workoutId: string) => {
     try {
-      // Récupérer le workout et ses exercices
-      const { data: workout, error: workoutError } = await supabase
-        .from('workout')
-        .select('*')
-        .eq('id', workoutId)
-        .single();
+      const workout = await pb.collection('workout').getOne(workoutId);
 
-      if (workoutError) throw workoutError;
+      const exercises = await pb.collection('workout_exercises').getFullList({
+        filter: `workout_id = "${workoutId}"`,
+        sort: 'order_index',
+      });
 
-      const { data: exercises, error: exercisesError } = await supabase
-        .from('workout_exercise')
-        .select('*')
-        .eq('workout_id', workoutId);
+      const newWorkout = await pb.collection('workout').create({
+        titre: `${workout.titre} (copie)`,
+        description: workout.description ?? null,
+        duree_estimee: workout.duree_estimee ?? null,
+        workout_type: workout.workout_type ?? 'classic',
+        session_type: workout.session_type ?? 'main',
+        circuit_rounds: workout.circuit_rounds ?? null,
+        nombre_circuits: workout.nombre_circuits || 1,
+        circuit_configs: workout.circuit_configs ?? null,
+        temps_repos_tours_seconds: workout.temps_repos_tours_seconds ?? null,
+        is_template: true,
+      });
 
-      if (exercisesError) throw exercisesError;
-
-      // Créer une copie du workout
-      const { data: newWorkout, error: newWorkoutError } = await supabase
-        .from('workout')
-        .insert({
-          titre: `${workout.titre} (copie)`,
-          description: workout.description,
-          duree_estimee: workout.duree_estimee,
-          workout_type: workout.workout_type,
-          circuit_rounds: workout.circuit_rounds,
-          is_template: true
-        })
-        .select()
-        .single();
-
-      if (newWorkoutError) throw newWorkoutError;
-
-      // Copier les exercices
-      if (exercises && exercises.length > 0) {
-        const newExercises = exercises.map(ex => ({
-          workout_id: newWorkout.id,
-          exercise_id: ex.exercise_id,
-          order_index: ex.order_index,
-          series: ex.series,
-          reps: ex.reps,
-          temps_seconds: ex.temps_seconds,
-          charge_cible: ex.charge_cible,
-          tempo: ex.tempo,
-          temps_repos_seconds: ex.temps_repos_seconds,
-          rpe_cible: ex.rpe_cible,
-          tips: ex.tips,
-          variations: ex.variations,
-          couleur: ex.couleur
-        }));
-
-        const { error: insertExercisesError } = await supabase
-          .from('workout_exercise')
-          .insert(newExercises);
-
-        if (insertExercisesError) throw insertExercisesError;
+      if (exercises.length > 0) {
+        await Promise.all(
+          exercises.map((ex) =>
+            pb.collection('workout_exercises').create({
+              workout_id: newWorkout.id,
+              exercise_id: ex.exercise_id,
+              order_index: ex.order_index,
+              series: ex.series,
+              reps: ex.reps,
+              temps_seconds: ex.temps_seconds,
+              charge_cible: ex.charge_cible,
+              tempo: ex.tempo,
+              temps_repos_seconds: ex.temps_repos_seconds,
+              rpe_cible: ex.rpe_cible,
+              tips: ex.tips,
+              variations: ex.variations,
+              couleur: ex.couleur,
+              couleur_elastique: ex.couleur_elastique ?? null,
+              circuit_number: ex.circuit_number || 1,
+            })
+          )
+        );
       }
 
       toast({
@@ -205,7 +183,7 @@ const CoachWorkouts = () => {
       console.error('Error duplicating workout:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de dupliquer la séance",
+        description: error?.response?.message || error?.message || "Impossible de dupliquer la séance",
         variant: "destructive"
       });
     }
@@ -412,3 +390,6 @@ const CoachWorkouts = () => {
 };
 
 export default CoachWorkouts;
+
+
+
