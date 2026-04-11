@@ -235,14 +235,13 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
         };
       });
       
-      await Promise.all(
-        logsToSave.map((log) =>
-          pb.collection('session_progress').create({
-            ...log,
-            progress_type: 'set_log',
-          }, { requestKey: null })
-        )
-      );
+      // fix: séquentiel pour éviter auto-cancellation PocketBase
+      for (const log of logsToSave) {
+        await pb.collection('session_progress').create({
+          ...log,
+          progress_type: 'set_log',
+        }, { requestKey: null });
+      }
 
       toast({
         title: "Tour enregistré",
