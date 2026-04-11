@@ -143,7 +143,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
 
       // Chercher si un week_plan existe déjà pour ce programme et cette semaine ISO
       const existingPlans = await pb.collection('week_plans').getFullList({
-        filter: `program = "${programId}" && iso_week = ${isoWeek} && start_date = "${startDate}"`,
+        filter: `program = "${programId}" && iso_week = ${isoWeek}`,
       });
 
       let weekPlanId: string;
@@ -229,7 +229,7 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
 
       // Chercher si un week_plan existe déjà pour ce programme et cette semaine ISO
       const existingPlans = await pb.collection('week_plans').getFullList({
-        filter: `program = "${programId}" && iso_week = ${isoWeek} && start_date = "${startDate}"`,
+        filter: `program = "${programId}" && iso_week = ${isoWeek}`,
       });
 
       let weekPlanId: string;
