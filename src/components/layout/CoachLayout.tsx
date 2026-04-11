@@ -36,7 +36,7 @@ export const CoachLayout: React.FC<CoachLayoutProps> = ({ children }) => {
             <img src="/logo-actiminute.png" alt="Acti'Minute" className="h-10 w-10" />
             <div>
               <h1 className="font-bold text-lg">Acti'Minute</h1>
-              <p className="text-sm opacity-75">Coach {user?.handle || 'Pro'}</p>
+              <p className="text-sm opacity-75">{user?.name || 'Coach'}</p>
             </div>
           </div>
         </div>

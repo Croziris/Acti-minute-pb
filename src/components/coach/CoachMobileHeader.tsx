@@ -46,7 +46,7 @@ export const CoachMobileHeader = () => {
                   <User className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-medium">{user?.handle || 'Coach'}</p>
+                  <p className="font-medium">{user?.name || 'Coach'}</p>
                   <p className="text-sm text-muted-foreground">Compte coach</p>
                 </div>
               </div>
