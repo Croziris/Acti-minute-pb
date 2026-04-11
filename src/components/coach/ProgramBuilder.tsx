@@ -78,89 +78,87 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
         sort: 'start_date',
       });
 
-      const organized = await Promise.all(
-        (weekPlansData || []).map(async (wp: any) => {
-          const sessionsData = await pb.collection('sessions').getFullList({
-            filter: `week_plan = "${wp.id}"`,
-            sort: 'index_num',
-          });
+      const organized: WeekPlan[] = [];
+      for (const wp of (weekPlansData || [])) {
+        // fix: séquentiel pour éviter auto-cancellation PocketBase
+        const sessionsData = await pb.collection('sessions').getFullList({
+          filter: `week_plan = "${wp.id}"`,
+          sort: 'index_num',
+        });
 
-          const normalizedSessions: Session[] = await Promise.all(
-            sessionsData.map(async (s: any) => {
-              const workoutIds = Array.isArray(s.workout_ids)
-                ?s.workout_ids
-                : (s.workout ?[s.workout] : []);
+        const normalizedSessions: Session[] = [];
+        for (const s of sessionsData) {
+          // fix: séquentiel pour éviter auto-cancellation PocketBase
+          const workoutIds = Array.isArray(s.workout_ids)
+            ? s.workout_ids
+            : (s.workout ? [s.workout] : []);
 
-              if (workoutIds.length > 1) {
-                const workouts = await Promise.all(
-                  workoutIds.map((workoutId: string) => pb.collection('workout').getOne(workoutId))
-                );
+          if (workoutIds.length > 1) {
+            const workouts: any[] = [];
+            for (const workoutId of workoutIds) {
+              workouts.push(await pb.collection('workout').getOne(workoutId));
+            }
+            normalizedSessions.push({
+              id: s.id,
+              index_num: s.index_num,
+              statut: s.statut,
+              isCombined: true,
+              workouts: workouts.map((w: any) => ({
+                id: w.id,
+                titre: w.titre,
+                description: w.description ?? null,
+                duree_estimee: w.duree_estimee ?? null,
+                workout_type: w.workout_type,
+                session_type: w.session_type,
+              })),
+              workout: {
+                titre: workouts.map((w: any) => w.titre).join(' + '),
+                description: `${workouts.length} séances combinées`,
+                duree_estimee: workouts.reduce((sum: number, w: any) => sum + (w.duree_estimee || 0), 0),
+                workout_type: 'combined',
+                circuit_rounds: null,
+              },
+            } as Session);
+          } else if (s.workout) {
+            const workout = await pb.collection('workout').getOne(s.workout);
+            normalizedSessions.push({
+              id: s.id,
+              index_num: s.index_num,
+              statut: s.statut,
+              isCombined: false,
+              workout: {
+                titre: (workout as any).titre,
+                description: (workout as any).description ?? null,
+                duree_estimee: (workout as any).duree_estimee ?? null,
+                workout_type: (workout as any).workout_type || 'classic',
+                circuit_rounds: (workout as any).circuit_rounds ?? null,
+              },
+            } as Session);
+          } else {
+            normalizedSessions.push({
+              id: s.id,
+              index_num: s.index_num,
+              statut: s.statut,
+              isCombined: false,
+              workout: {
+                titre: 'Séance sans workout',
+                description: null,
+                duree_estimee: null,
+                workout_type: 'classic',
+                circuit_rounds: null,
+              },
+            } as Session);
+          }
+        }
 
-                return {
-                  id: s.id,
-                  index_num: s.index_num,
-                  statut: s.statut,
-                  isCombined: true,
-                  workouts: workouts.map((w: any) => ({
-                    id: w.id,
-                    titre: w.titre,
-                    description: w.description ?? null,
-                    duree_estimee: w.duree_estimee ?? null,
-                    workout_type: w.workout_type,
-                    session_type: w.session_type,
-                  })),
-                  workout: {
-                    titre: workouts.map((w: any) => w.titre).join(' + '),
-                    description: `${workouts.length} séances combinées`,
-                    duree_estimee: workouts.reduce((sum: number, w: any) => sum + (w.duree_estimee || 0), 0),
-                    workout_type: 'combined',
-                    circuit_rounds: null,
-                  },
-                } as Session;
-              }
-
-              if (s.workout) {
-                const workout = await pb.collection('workout').getOne(s.workout);
-                return {
-                  id: s.id,
-                  index_num: s.index_num,
-                  statut: s.statut,
-                  isCombined: false,
-                  workout: {
-                    titre: (workout as any).titre,
-                    description: (workout as any).description ?? null,
-                    duree_estimee: (workout as any).duree_estimee ?? null,
-                    workout_type: (workout as any).workout_type || 'classic',
-                    circuit_rounds: (workout as any).circuit_rounds ?? null,
-                  },
-                } as Session;
-              }
-
-              return {
-                id: s.id,
-                index_num: s.index_num,
-                statut: s.statut,
-                isCombined: false,
-                workout: {
-                  titre: 'Séance sans workout',
-                  description: null,
-                  duree_estimee: null,
-                  workout_type: 'classic',
-                  circuit_rounds: null,
-                },
-              } as Session;
-            })
-          );
-
-          return {
-            id: wp.id,
-            iso_week: wp.iso_week,
-            start_date: wp.start_date,
-            end_date: wp.end_date,
-            sessions: normalizedSessions.sort((a, b) => a.index_num - b.index_num),
-          } as WeekPlan;
-        })
-      );
+        organized.push({
+          id: wp.id,
+          iso_week: wp.iso_week,
+          start_date: wp.start_date,
+          end_date: wp.end_date,
+          sessions: normalizedSessions.sort((a, b) => a.index_num - b.index_num),
+        } as WeekPlan);
+      }
 
       // Trier les semaines : semaine actuelle en premier, puis futures, puis passées
       // Normaliser la date actuelle Ã  minuit pour comparer correctement avec les dates de début/fin
