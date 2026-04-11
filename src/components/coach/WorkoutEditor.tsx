@@ -193,11 +193,10 @@ export const WorkoutEditor: React.FC<Props> = ({
     [newExercises[currentIndex], newExercises[newIndex]] = [newExercises[newIndex], newExercises[currentIndex]];
 
     try {
-      await Promise.all(
-        newExercises.map((ex, idx) =>
-          pb.collection('workout_exercises').update(ex.id, { order_index: idx })
-        )
-      );
+      // fix: séquentiel pour éviter auto-cancellation PocketBase
+      for (const [idx, ex] of newExercises.entries()) {
+        await pb.collection('workout_exercises').update(ex.id, { order_index: idx });
+      }
 
       setExercises(newExercises);
     } catch (error: any) {

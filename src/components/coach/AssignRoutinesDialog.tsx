@@ -110,11 +110,10 @@ export const AssignRoutinesDialog: React.FC<AssignRoutinesDialogProps> = ({
         const existingAssignments = await pb.collection('client_routines').getFullList({
           filter: `client = "${clientId}" && routine = "${routineId}" && assigned_by = "${user.id}"`,
         });
-        await Promise.all(
-          existingAssignments.map((assignment: any) =>
-            pb.collection('client_routines').update(assignment.id, { active: false })
-          )
-        );
+        // fix: séquentiel pour éviter auto-cancellation PocketBase
+        for (const assignment of existingAssignments) {
+          await pb.collection('client_routines').update(assignment.id, { active: false });
+        }
 
         setAssignments(prev => ({
           ...prev,

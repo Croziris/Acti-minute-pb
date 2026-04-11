@@ -83,32 +83,32 @@ const CoachClient = () => {
           </CardHeader>
         </Card>
 
-        {program ?(
-          <Tabs defaultValue="workouts" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="workouts">Séances</TabsTrigger>
-              <TabsTrigger value="habits">Habitudes</TabsTrigger>
-              <TabsTrigger value="routines">Routines</TabsTrigger>
-            </TabsList>
-            <TabsContent value="workouts" className="mt-6">
+        <Tabs defaultValue="workouts" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="workouts">Séances</TabsTrigger>
+            <TabsTrigger value="habits">Habitudes</TabsTrigger>
+            <TabsTrigger value="routines">Routines</TabsTrigger>
+          </TabsList>
+          <TabsContent value="workouts" className="mt-6">
+            {program ? (
               <ProgramBuilder programId={program.id} clientId={id!} />
-            </TabsContent>
-            <TabsContent value="habits" className="mt-6">
-              <HabitManager clientId={id!} />
-            </TabsContent>
-            <TabsContent value="routines" className="mt-6">
-              <ClientRoutineManager clientId={id!} />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
-                Ce client n'a pas encore de programme assigné
-              </p>
-            </CardContent>
-          </Card>
-        )}
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">
+                    Ce client n'a pas encore de programme assigné
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          <TabsContent value="habits" className="mt-6">
+            <HabitManager clientId={id!} />
+          </TabsContent>
+          <TabsContent value="routines" className="mt-6">
+            <ClientRoutineManager clientId={id!} />
+          </TabsContent>
+        </Tabs>
       </div>
     </CoachLayout>
   );
