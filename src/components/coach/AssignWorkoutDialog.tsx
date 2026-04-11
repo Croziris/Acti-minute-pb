@@ -138,30 +138,35 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       
       const isoWeek = getISOWeek(weekStart);
 
-      const existingWeekPlans = await pb.collection('week_plans').getFullList({
-        filter: `program = "${programId}" && start_date = "${weekStartStr}" && end_date = "${weekEndStr}"`,
-        sort: '-created',
-      });
-      let weekPlan = existingWeekPlans[0] as any;
+      const startDate = weekStartStr;
+      const endDate = weekEndStr;
 
-      if (!weekPlan) {
-        weekPlan = await pb.collection('week_plans').create({
-          program: programId,
-          iso_week: isoWeek,
-          start_date: weekStartStr,
-          end_date: weekEndStr,
-          expected_sessions: 1
+      // Chercher si un week_plan existe déjà pour ce programme et cette semaine ISO
+      const existingPlans = await pb.collection('week_plans').getFullList({
+        filter: `program = "${programId}" && iso_week = ${isoWeek}`,
+      });
+
+      let weekPlanId: string;
+      if (existingPlans.length > 0) {
+        weekPlanId = existingPlans[0].id; // Réutiliser l'existant
+        await pb.collection('week_plans').update(weekPlanId, {
+          expected_sessions: (existingPlans[0].expected_sessions || 0) + 1
         });
       } else {
-        await pb.collection('week_plans').update(weekPlan.id, {
-          expected_sessions: (weekPlan.expected_sessions || 0) + 1
+        const newPlan = await pb.collection('week_plans').create({
+          program: programId,
+          iso_week: isoWeek,
+          start_date: startDate,
+          end_date: endDate,
+          expected_sessions: 1
         });
+        weekPlanId = newPlan.id;
       }
 
       await pb.collection('sessions').create({
         client: clientId,
         workout: selectedTemplate,
-        week_plan: weekPlan.id,
+        week_plan: weekPlanId,
         index_num: parseInt(sessionNumber),
         statut: 'planned'
       });
@@ -219,31 +224,36 @@ export const AssignWorkoutDialog: React.FC<Props> = ({
       
       const isoWeek = getISOWeek(weekStart);
 
-      const existingWeekPlans = await pb.collection('week_plans').getFullList({
-        filter: `program = "${programId}" && start_date = "${weekStartStr}" && end_date = "${weekEndStr}"`,
-        sort: '-created',
-      });
-      let weekPlan = existingWeekPlans[0] as any;
+      const startDate = weekStartStr;
+      const endDate = weekEndStr;
 
-      if (!weekPlan) {
-        weekPlan = await pb.collection('week_plans').create({
-          program: programId,
-          iso_week: isoWeek,
-          start_date: weekStartStr,
-          end_date: weekEndStr,
-          expected_sessions: 1
+      // Chercher si un week_plan existe déjà pour ce programme et cette semaine ISO
+      const existingPlans = await pb.collection('week_plans').getFullList({
+        filter: `program = "${programId}" && iso_week = ${isoWeek}`,
+      });
+
+      let weekPlanId: string;
+      if (existingPlans.length > 0) {
+        weekPlanId = existingPlans[0].id; // Réutiliser l'existant
+        await pb.collection('week_plans').update(weekPlanId, {
+          expected_sessions: (existingPlans[0].expected_sessions || 0) + 1
         });
       } else {
-        await pb.collection('week_plans').update(weekPlan.id, {
-          expected_sessions: (weekPlan.expected_sessions || 0) + 1
+        const newPlan = await pb.collection('week_plans').create({
+          program: programId,
+          iso_week: isoWeek,
+          start_date: startDate,
+          end_date: endDate,
+          expected_sessions: 1
         });
+        weekPlanId = newPlan.id;
       }
 
       await pb.collection('sessions').create({
         client: clientId,
         workout: null,
         workout_ids: selectedWorkouts.map((workout) => workout.id),
-        week_plan: weekPlan.id,
+        week_plan: weekPlanId,
         index_num: parseInt(sessionNumber),
         statut: 'planned'
       });
