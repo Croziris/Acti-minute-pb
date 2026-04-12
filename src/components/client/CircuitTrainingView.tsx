@@ -260,6 +260,11 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       return;
     }
     
+    if (currentRoundInCircuit > config.rounds || showFinalFeedback || showCircuitFeedback) {
+      console.warn("⚠️ handleValidateTour ignoré : état incohérent");
+      return;
+    }
+
     onRoundComplete(globalTour);
 
     // Mettre à jour l'état des tours complétés
@@ -525,7 +530,10 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
                 onClick={handleValidateTour}
                 disabled={
                   restingCircuit !== null || 
-                  currentRoundInCircuit > currentCircuitConfig.rounds
+                  currentRoundInCircuit > currentCircuitConfig.rounds ||
+                  showFinalFeedback ||
+                  showCircuitFeedback ||
+                  showTransition
                 }
                 size="lg"
                 className="w-full min-h-[64px] flex items-center justify-center"
