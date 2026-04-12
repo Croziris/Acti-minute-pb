@@ -339,7 +339,7 @@ const ClientSession = () => {
 
   const handleCircuitComplete = () => {
     console.log("?Circuit workout terminé");
-    completeCurrentWorkout();
+    setShowValidationScreen(true);
   };
 
   const completeCurrentWorkout = () => {
@@ -389,7 +389,9 @@ const ClientSession = () => {
     console.log("?Tous les workouts terminés");
     const allExerciseIds = exercises.map((e) => e.exercise.id);
     setCompletedExercises(new Set(allExerciseIds));
-    setShowFinalFeedback(true);
+    // Pour les circuits, le feedback est géré dans CircuitTrainingView
+    // On attend que onAllComplete() déclenche completeCurrentWorkout() sans feedback supplémentaire
+    setShowValidationScreen(true);
   };
 
   const handleFinalFeedbackSubmit = async (feedback: {
@@ -993,4 +995,3 @@ const ClientSession = () => {
 };
 
 export default ClientSession;
-
