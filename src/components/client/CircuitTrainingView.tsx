@@ -225,7 +225,10 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
     // Sauvegarder tous les logs du tour en base de données
     try {
       const logsToSave = currentCircuitExercises.map(ex => {
-        const data = exerciseData[ex.exercise_id] || { reps: ex.reps || 0, charge: ex.charge_cible || 0 };
+        // Chercher la donnée avec exercise_id ET avec exercise.id (les deux clés possibles)
+        const data = exerciseData[ex.exercise_id] 
+          || exerciseData[ex.exercise.id] 
+          || { reps: ex.reps || 0, charge: ex.charge_cible || 0 };
         return {
           session: sessionId,
           exercise: ex.exercise_id,
