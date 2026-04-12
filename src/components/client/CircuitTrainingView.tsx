@@ -90,7 +90,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
         console.log("📂 Chargement de la progression...");
         
         const data = await pb.collection('session_progress').getFullList({
-          filter: `session = "${sessionId}"`,
+          filter: `session = "${sessionId}" && progress_type = "circuit"`,
           sort: 'circuit_number',
           requestKey: null,
         });
@@ -229,17 +229,24 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
 
   const handleValidateTour = async () => {
     const config = getCircuitConfig(currentCircuitNumber);
+    // Recalculer depuis l'état réel pour éviter les décalages
+    const realCompletedRounds = completedRoundsByCircuit[currentCircuitNumber] || 0;
+    const realCurrentRound = realCompletedRounds + 1;
+
+    if (realCurrentRound !== currentRoundInCircuit) {
+      console.warn(`⚠️ Décalage détecté : UI=${currentRoundInCircuit} vs réel=${realCurrentRound}`);
+    }
 
     // Protection double-clic
-    if (currentRoundInCircuit > config.rounds || showFinalFeedback || showCircuitFeedback || showTransition) {
+    if (realCurrentRound > config.rounds || showFinalFeedback || showCircuitFeedback || showTransition) {
       console.warn("⚠️ handleValidateTour ignoré : état incohérent");
       return;
     }
 
-    const globalTour = calculateGlobalTourNumber(currentCircuitIndex, currentRoundInCircuit);
+    const globalTour = calculateGlobalTourNumber(currentCircuitIndex, realCurrentRound);
 
     console.log("=== handleValidateTour ===");
-    console.log(`Circuit ${currentCircuitNumber}, Tour ${currentRoundInCircuit}/${config.rounds}`);
+    console.log(`Circuit ${currentCircuitNumber}, Tour ${realCurrentRound}/${config.rounds}`);
 
     // 1. Sauvegarder les logs dans set_logs (collection dédiée)
     try {
@@ -255,7 +262,7 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
       }
       toast({
         title: "Tour enregistré",
-        description: `Circuit ${currentCircuitNumber} - Tour ${currentRoundInCircuit}/${config.rounds} validé`,
+        description: `Circuit ${currentCircuitNumber} - Tour ${realCurrentRound}/${config.rounds} validé`,
       });
     } catch (error) {
       console.error('Erreur sauvegarde set_logs:', error);
@@ -266,15 +273,15 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
     // 2. Mettre à jour le compteur de tours
     const newCompletedRounds = {
       ...completedRoundsByCircuit,
-      [currentCircuitNumber]: currentRoundInCircuit,
+      [currentCircuitNumber]: realCurrentRound,
     };
     setCompletedRoundsByCircuit(newCompletedRounds);
 
     // 3. Sauvegarder la progression circuit
-    await saveProgress(currentCircuitNumber, currentRoundInCircuit, exerciseData);
+    await saveProgress(currentCircuitNumber, realCurrentRound, exerciseData);
 
     // 4. Déterminer l'étape suivante
-    const isLastRoundOfThisCircuit = currentRoundInCircuit >= config.rounds;
+    const isLastRoundOfThisCircuit = realCurrentRound >= config.rounds;
     const isLastCircuit = currentCircuitIndex >= nombreCircuits - 1;
 
     if (!isLastRoundOfThisCircuit) {
@@ -394,8 +401,13 @@ export const CircuitTrainingView: React.FC<CircuitTrainingViewProps> = ({
   // Calculer la progression totale en tours
   const totalRoundsNeeded = Array.from({ length: nombreCircuits }, (_, i) => i + 1)
     .reduce((sum, num) => sum + getCircuitConfig(num).rounds, 0);
-  const totalRoundsCompleted = Object.entries(completedRoundsByCircuit)
-    .reduce((sum, [_, rounds]) => sum + rounds, 0);
+  const totalRoundsCompleted = Array.from({ length: nombreCircuits }, (_, i) => i + 1)
+    .reduce((sum, num) => {
+      const completed = completedRoundsByCircuit[num] || 0;
+      const config = getCircuitConfig(num);
+      // Plafonner au max de tours configurés pour ce circuit
+      return sum + Math.min(completed, config.rounds);
+    }, 0);
   const progressPercentage = (totalRoundsCompleted / totalRoundsNeeded) * 100;
 
   // Circuit actuel (1-indexed)
