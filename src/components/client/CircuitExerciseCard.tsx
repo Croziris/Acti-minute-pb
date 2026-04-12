@@ -45,16 +45,16 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
   onExerciseDataChange
 }) => {
   const [showVideo, setShowVideo] = useState(false);
-  const [repsCompleted, setRepsCompleted] = useState<number | ''>(we.reps ?? '');
-  const [charge, setCharge] = useState<number | ''>(we.charge_cible ?? '');
+  const [repsCompleted, setRepsCompleted] = useState<number>(we.reps ?? 0);
+  const [charge, setCharge] = useState<number>(we.charge_cible ?? 0);
   const isShort = we.exercise?.youtube_url ?isYouTubeShort(we.exercise.youtube_url) : false;
 
   // Notifier le parent à chaque changement
   React.useEffect(() => {
     if (onExerciseDataChange) {
       onExerciseDataChange(we.exercise_id, {
-        reps: typeof repsCompleted === 'number' ? repsCompleted : 0,
-        charge: typeof charge === 'number' ? charge : 0,
+        reps: repsCompleted,
+        charge: charge,
       });
     }
   }, [repsCompleted, charge, we.exercise_id, onExerciseDataChange]);
@@ -198,24 +198,21 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setRepsCompleted(Math.max(0, (typeof repsCompleted === 'number' ? repsCompleted : 0) - 1))}
+                  onClick={() => setRepsCompleted(Math.max(0, repsCompleted - 1))}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
                 <Input
                   type="number"
                   value={repsCompleted}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setRepsCompleted(val === '' ? '' : parseInt(val) || 0);
-                  }}
+                  onChange={(e) => setRepsCompleted(parseInt(e.target.value) || 0)}
                   className="text-center font-semibold"
                   placeholder="0"
                 />
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setRepsCompleted((typeof repsCompleted === 'number' ? repsCompleted : 0) + 1)}
+                  onClick={() => setRepsCompleted(repsCompleted + 1)}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -235,10 +232,7 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
                 <Input
                   type="number"
                   value={charge}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setCharge(val === '' ? '' : parseFloat(val) || 0);
-                  }}
+                  onChange={(e) => setCharge(parseFloat(e.target.value) || 0)}
                   className="text-center"
                   step="0.5"
                 />
