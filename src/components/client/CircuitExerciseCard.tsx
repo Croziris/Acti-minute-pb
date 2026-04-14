@@ -44,10 +44,31 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
   roundNumber,
   onExerciseDataChange
 }) => {
+  const toNumberOrEmpty = (value: unknown): number | '' => {
+    if (value === null || value === undefined || value === '') return '';
+    const parsed = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(parsed) || parsed === 0) return '';
+    return parsed;
+  };
+
+  const toPositiveNumber = (value: unknown): number | null => {
+    const parsed = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return parsed;
+  };
+
   const [showVideo, setShowVideo] = useState(false);
-  const [repsCompleted, setRepsCompleted] = useState<number | ''>(we.reps ?? '');
-  const [charge, setCharge] = useState<number | ''>(we.charge_cible ?? '');
+  const [repsCompleted, setRepsCompleted] = useState<number | ''>(toNumberOrEmpty(we.reps));
+  const [charge, setCharge] = useState<number | ''>(toNumberOrEmpty(we.charge_cible));
   const isShort = we.exercise?.youtube_url ?isYouTubeShort(we.exercise.youtube_url) : false;
+  const targetReps = toPositiveNumber(we.reps);
+  const targetDuration = toPositiveNumber(we.temps_seconds);
+  const targetCharge = toPositiveNumber(we.charge_cible);
+  const targetTempo = typeof we.tempo === 'string' && we.tempo.trim() !== '' && we.tempo.trim() !== '0'
+    ? we.tempo
+    : null;
+  const targetRest = toPositiveNumber(we.temps_repos_seconds);
+  const targetRpe = toPositiveNumber(we.rpe_cible);
 
   // Notifier le parent à chaque changement
   React.useEffect(() => {
@@ -122,49 +143,49 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
           {/* Affichage dynamique de TOUTES les variables renseignées */}
           <div className="grid grid-cols-2 gap-3">
             {/* Répétitions cibles */}
-            {we.reps && (
+            {targetReps !== null && (
               <div className="text-center p-2 bg-background rounded border border-border">
-                <div className="font-semibold text-lg">{we.reps}</div>
+                <div className="font-semibold text-lg">{targetReps}</div>
                 <div className="text-xs text-muted-foreground">Répétitions cibles</div>
               </div>
             )}
             
             {/* Temps (secondes) */}
-            {we.temps_seconds && (
+            {targetDuration !== null && (
               <div className="text-center p-2 bg-background rounded border border-border">
-                <div className="font-semibold text-lg">{we.temps_seconds}s</div>
+                <div className="font-semibold text-lg">{targetDuration}s</div>
                 <div className="text-xs text-muted-foreground">Durée</div>
               </div>
             )}
             
             {/* Charge cible */}
-            {we.charge_cible && (
+            {targetCharge !== null && (
               <div className="text-center p-2 bg-background rounded border border-border">
-                <div className="font-semibold text-lg">{we.charge_cible}kg</div>
+                <div className="font-semibold text-lg">{targetCharge}kg</div>
                 <div className="text-xs text-muted-foreground">Charge cible</div>
               </div>
             )}
             
             {/* Tempo */}
-            {we.tempo && (
+            {targetTempo && (
               <div className="text-center p-2 bg-background rounded border border-border">
-                <div className="font-semibold text-lg">{we.tempo}</div>
+                <div className="font-semibold text-lg">{targetTempo}</div>
                 <div className="text-xs text-muted-foreground">Tempo</div>
               </div>
             )}
             
             {/* Temps de repos */}
-            {we.temps_repos_seconds && (
+            {targetRest !== null && (
               <div className="text-center p-2 bg-background rounded border border-border">
-                <div className="font-semibold text-lg">{we.temps_repos_seconds}s</div>
+                <div className="font-semibold text-lg">{targetRest}s</div>
                 <div className="text-xs text-muted-foreground">Repos</div>
               </div>
             )}
             
             {/* RPE cible */}
-            {we.rpe_cible && (
+            {targetRpe !== null && (
               <div className="text-center p-2 bg-background rounded border border-border">
-                <div className="font-semibold text-lg">{we.rpe_cible}/10</div>
+                <div className="font-semibold text-lg">{targetRpe}/10</div>
                 <div className="text-xs text-muted-foreground">RPE cible</div>
               </div>
             )}
@@ -190,8 +211,8 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">
                 Répétitions réalisées
-                {we.reps && (
-                  <span className="ml-1 text-primary">(cible: {we.reps})</span>
+                {targetReps !== null && (
+                  <span className="ml-1 text-primary">(cible: {targetReps})</span>
                 )}
               </label>
               <div className="flex items-center gap-2">
@@ -204,7 +225,7 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
                 </Button>
                 <Input
                   type="number"
-                  value={repsCompleted === 0 ? '' : repsCompleted}
+                  value={repsCompleted === '' || repsCompleted === 0 ? '' : repsCompleted}
                   onChange={(e) => {
                     const val = e.target.value;
                     setRepsCompleted(val === '' ? '' : parseInt(val) || 0);
@@ -222,19 +243,19 @@ export const CircuitExerciseCard: React.FC<CircuitExerciseCardProps> = ({
               </div>
               
               {/* Info contextuelle selon le type d'exercice */}
-              {we.temps_seconds && !we.reps && (
+              {targetDuration !== null && targetReps === null && (
                 <p className="text-xs text-muted-foreground italic text-center">
-                  💡 Note tes répétitions effectuées pendant les {we.temps_seconds}s
+                  💡 Note tes répétitions effectuées pendant les {targetDuration}s
                 </p>
               )}
             </div>
 
-            {we.charge_cible && (
+            {targetCharge !== null && (
               <div className="space-y-2">
                 <label className="text-xs text-muted-foreground">Charge utilisée (kg)</label>
                 <Input
                   type="number"
-                  value={charge === 0 ? '' : charge}
+                  value={charge === '' || charge === 0 ? '' : charge}
                   onChange={(e) => {
                     const val = e.target.value;
                     setCharge(val === '' ? '' : parseFloat(val) || 0);
