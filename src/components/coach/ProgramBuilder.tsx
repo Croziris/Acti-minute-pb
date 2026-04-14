@@ -161,7 +161,7 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
       }
 
       // Trier les semaines : semaine actuelle en premier, puis futures, puis passées
-      // Normaliser la date actuelle Ã  minuit pour comparer correctement avec les dates de début/fin
+      // Normaliser la date actuelle à minuit pour comparer correctement avec les dates de début/fin
       const now = new Date();
       now.setHours(0, 0, 0, 0);
       const sorted = organized.sort((a, b) => {
@@ -347,10 +347,10 @@ export const ProgramBuilder: React.FC<Props> = ({ programId, clientId }) => {
                                         {idx + 1}
                                       </Badge>
                                       <span>
-                                        {w.session_type === 'warmup' && 'ðŸ”¥'}
-                                        {w.session_type === 'main' && 'ðŸ’ª'}
-                                        {w.session_type === 'cooldown' && 'ðŸ§˜'}
-                                        {!w.session_type && 'ðŸ“‹'}
+                                        {w.session_type === 'warmup' && '🔥'}
+                                        {w.session_type === 'main' && '💪'}
+                                        {w.session_type === 'cooldown' && '🧘'}
+                                        {!w.session_type && '📋'}
                                       </span>
                                       <span className="font-medium">{w.titre}</span>
                                     </div>

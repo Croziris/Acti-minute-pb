@@ -94,7 +94,7 @@ export const SessionCompleteCard: React.FC<SessionCompleteCardProps> = ({
             N'hésite pas à partager tes ressentis avec ton coach
           </label>
           <Textarea
-            placeholder="Comment s'est passée la séance ?Des difficultés ?Des progrès ?"
+            placeholder="Comment s'est passée la séance ? Des difficultés ? Des progrès ?"
             value={comment}
             onChange={(e) => handleCommentChange(e.target.value)}
             className="min-h-[120px] bg-white dark:bg-gray-900 border-green-200 dark:border-green-800 focus:border-green-400 dark:focus:border-green-600"

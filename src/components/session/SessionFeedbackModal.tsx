@@ -48,7 +48,7 @@ export const SessionFeedbackModal: React.FC<SessionFeedbackModalProps> = ({
         <DialogHeader>
           <DialogTitle className="text-2xl">🎉 Séance terminée !</DialogTitle>
           <DialogDescription>
-            Comment s'est passée ta séance ?Ton feedback aide ton coach à adapter ton programme.
+            Comment s'est passée ta séance ? Ton feedback aide ton coach à adapter ton programme.
           </DialogDescription>
         </DialogHeader>
 
@@ -125,7 +125,7 @@ export const SessionFeedbackModal: React.FC<SessionFeedbackModalProps> = ({
               Commentaire (optionnel)
             </label>
             <Textarea
-              placeholder="Des ressentis à partager ?Une douleur ?Un exercice que tu as particulièrement aimé ?"
+              placeholder="Des ressentis à partager ? Une douleur ? Un exercice que tu as particulièrement aimé ?"
               value={commentaire}
               onChange={(e) => setCommentaire(e.target.value)}
               className="min-h-[80px] resize-none"
